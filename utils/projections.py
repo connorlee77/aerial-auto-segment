@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from scipy.spatial.transform import Rotation
 
@@ -59,7 +60,7 @@ def world2cam(q_xyzw, Pn, world_pts):
 def create_world_grid(yaw, x_mag=8000, y_mag=3000, N=200, exp_x=5, exp_y=5):
 
         x_mag = 8000
-        y_mag = 3000
+        
         x_unit_vec = np.array([-np.cos(yaw + np.pi/2), np.sin(yaw + np.pi/2)])
 
         # Faces right
@@ -67,15 +68,23 @@ def create_world_grid(yaw, x_mag=8000, y_mag=3000, N=200, exp_x=5, exp_y=5):
         right_vec = y_unit_vec*y_mag
 
         x_space = power_spacing(N, 0, x_mag, exp_x)
-        y_space_left = power_spacing(N // 2, 0.1, y_mag, exp_y)
-        y_space_right = power_spacing(N // 2, 0.1, y_mag, exp_y)[::-1]
+        y_space_left = power_spacing(N // 2, 0.1, y_mag, exp_y)[::-1]
+        y_space_right = power_spacing(N // 2, 0.1, y_mag, exp_y)
 
         x_magnitudes = x_space
-        y_magnitudes = np.concatenate((-y_space_right, y_space_left))
+        # y_magnitudes = np.concatenate((-y_space_right, y_space_left))
+
+        # New stuff
+        y_mag_start = 10
+        y_magnitudes = np.linspace(-y_mag_start, y_mag_start, num=N).reshape(N, 1)
+        y_lin_scale = np.linspace(1, int(math.pow(y_mag / y_mag_start, 1/3)), num=N).reshape(1, N) ** 3
+        y_magnitudes_scaled = y_magnitudes * y_lin_scale
 
         # Create the grid of world points
         xx, yy = np.meshgrid(x_magnitudes, y_magnitudes)
+        yy = y_magnitudes_scaled
+
         world_grid = np.stack([xx.transpose(1, 0), yy.transpose(1, 0)], axis=2)
         world_pts = world_grid.reshape(-1, 2)
 
-        return x_unit_vec, y_unit_vec, x_magnitudes, y_magnitudes, world_pts
+        return x_unit_vec, y_unit_vec, x_magnitudes, y_magnitudes, world_pts, xx, yy

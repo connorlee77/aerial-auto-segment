@@ -97,6 +97,15 @@ def points_to_segmentation(img_shape, points, labels, color_map, mask=None):
 def draw_overlay_and_labels(img, points, labels, color_map=None, alpha=0.5):
     orig_img = np.copy(img)
     img_shape = img.shape[:2]
+    
+    w = img_shape[1]
+    h = img_shape[0]
+
+    idx_valid_w = np.logical_and(np.abs(points[:,0]) >= 0, np.abs(points[:,0]) < w)
+    idx_valid_h = np.logical_and(np.abs(points[:,1]) >= 0, np.abs(points[:,1]) < h)
+    idx_valid = np.logical_and(idx_valid_w, idx_valid_h)
+    points = points[idx_valid]
+    labels = labels[idx_valid]
 
     # Generate a binary mask from the original points
     binary_mask = generate_binary_mask(img_shape, points)
@@ -109,12 +118,12 @@ def draw_overlay_and_labels(img, points, labels, color_map=None, alpha=0.5):
 
     img_with_pts = np.copy(img)
     for i in range(points.shape[0]):
-        print(points[i].dtype, labels[i])
+        # print(points[i], labels[i])
         xi, yi = points[i]
         cls = labels[i]
         if not np.isnan(cls):
             color = color_map[cls]
-            cv2.circle(img_with_pts, (xi, yi), radius=3, color=color, thickness=-1)    
+            cv2.circle(img_with_pts, (xi, yi), radius=1, color=color, thickness=-1)    
 
     img_with_pts = cv2.rotate(img_with_pts, cv2.ROTATE_180)
     img_with_pts = cv2.cvtColor(img_with_pts, cv2.COLOR_RGB2BGR)
