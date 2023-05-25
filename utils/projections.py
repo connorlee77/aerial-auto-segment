@@ -57,7 +57,7 @@ def world2cam(q_xyzw, Pn, world_pts):
     Xn = project_points(X, R_mat, Pn).T
     return Xn.astype(int)
 
-def create_world_grid(yaw, x_mag=8000, y_mag=3000, N=200, exp_x=5, exp_y=5):
+def create_world_grid(yaw, x_mag=8000, y_mag=3000, Nx=200, Ny=200, exp_x=5, exp_y=5):
 
         x_mag = 8000
         
@@ -67,17 +67,17 @@ def create_world_grid(yaw, x_mag=8000, y_mag=3000, N=200, exp_x=5, exp_y=5):
         y_unit_vec = np.array([-np.cos(yaw+np.pi), np.sin(yaw+np.pi)])
         right_vec = y_unit_vec*y_mag
 
-        x_space = power_spacing(N, 0, x_mag, exp_x)
-        y_space_left = power_spacing(N // 2, 0.1, y_mag, exp_y)[::-1]
-        y_space_right = power_spacing(N // 2, 0.1, y_mag, exp_y)
+        x_space = power_spacing(Nx, 0, x_mag, exp_x)
+        y_space_left = power_spacing(Ny // 2, 0.1, y_mag, exp_y)[::-1]
+        y_space_right = power_spacing(Ny // 2, 0.1, y_mag, exp_y)
 
         x_magnitudes = x_space
         # y_magnitudes = np.concatenate((-y_space_right, y_space_left))
 
         # New stuff
         y_mag_start = 10
-        y_magnitudes = np.linspace(-y_mag_start, y_mag_start, num=N).reshape(N, 1)
-        y_lin_scale = np.linspace(1, int(math.pow(y_mag / y_mag_start, 1/3)), num=N).reshape(1, N) ** 3
+        y_magnitudes = np.linspace(-y_mag_start, y_mag_start, num=Ny).reshape(Ny, 1)
+        y_lin_scale = np.linspace(1, int(math.pow(y_mag / y_mag_start, 1/3)), num=Nx).reshape(1, Nx) ** 3
         y_magnitudes_scaled = y_magnitudes * y_lin_scale
 
         # Create the grid of world points
