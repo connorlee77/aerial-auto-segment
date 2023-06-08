@@ -45,12 +45,12 @@ from utils.draw import (
 ### Set path to flight sequence folder containing images and csv files.
 ##########################################################################
 # DATA_PATH = '/media/hdd2/data/caltech_duck/ONR_2023-03-22-14-41-46'
-DATA_PATH = '/home/carson/data/thermal/2022-12-20_Castaic_Lake/flight4'
-# DATA_PATH = '../data'
+# DATA_PATH = '/home/carson/data/thermal/2022-12-20_Castaic_Lake/flight4'
+DATA_PATH = '/data/onr-thermal/2022-12-20_Castaic_Lake/flight4'
 
 BASELINE_ELEVATION = 428.54 # Water elevation of Castaic Lake, Dec. 22, 2022
 LABEL_RASTER_PATH = 'label_mosaic_v2.tiff'
-DSM_PATH = 'microsoft_planetarycomputer_download/dsm/castaiclake/mosaic/mosaic.tiff'
+DSM_PATH = '/data/microsoft_planetary_computer/dsm/castaiclake/mosaic/mosaic.tiff'
 
 
 ##########################################################################
@@ -228,6 +228,8 @@ for t, img_path in tqdm.tqdm(enumerate(image_paths), total=len(image_paths)):
     world_coord_label_map = world_coord_label_map[ind]
     surface_elevation = np.copy(world_coord_label_map[:, 2])
     world_coord_label_map[:, 2] = -world_coord_label_map[:, 2] - z
+
+    ### SARASWATI: world_coord_label_map are the 3D labels (x: forward, y: right, z: down)
 
     Xn = world2cam(cam_xyzw, new_P, world_coord_label_map)
 
