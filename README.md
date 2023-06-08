@@ -1,10 +1,11 @@
 # AerialAutoSegment: GPS-Enabled Semantic Segmentation Annotation for UAVs  
 
-1. Check the sky masking code. thermal-41000.png looks odd. 
-2. Check projections close to drone
+1. ~~Check the sky masking code. thermal-41000.png looks odd.~~ 
+2. ~~Check projections close to drone~~
 3. Check grid formation for cliffs and other sharp changes in elevation. thermal-39000.png
-4. Enable CRF refinement -- cannot help 10m resolution
-5. Enable SegmentAnything refinement
+4. ~~Enable CRF refinement -- cannot help 10m resolution~~
+5. (saraswati) OpenGL 3D to 2D rendering -- should solve problem 3. 
+6. (saraswati) Enable SegmentAnything refinement
 
 
 ## Environment Setup
