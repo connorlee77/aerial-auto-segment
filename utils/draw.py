@@ -184,13 +184,14 @@ def draw_overlay_and_labels(img, points, labels, color_map=None, alpha=0.5):
     overlay = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
 
     img_with_pts = np.copy(img)
+    # img_with_pts = np.zeros_like(img)
     for i in range(points.shape[0]):
         # print(points[i], labels[i])
         xi, yi = points[i]
         cls = labels[i]
         if not np.isnan(cls):
             color = color_map[cls]
-            cv2.circle(img_with_pts, (xi, yi), radius=3, color=color, thickness=-1)    
+            cv2.circle(img_with_pts, (xi, yi), radius=1, color=color, thickness=-1)    
 
     img_with_pts = cv2.rotate(img_with_pts, cv2.ROTATE_180)
     img_with_pts = cv2.cvtColor(img_with_pts, cv2.COLOR_RGB2BGR)
