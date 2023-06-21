@@ -89,7 +89,7 @@ def colorize_dynamic_world_label(label):
         color_label[label == i, :] = mapping[i] 
     return color_label / 255
 
-pts = np.load('outputs/thermal-43000.npy').T
+pts = np.load('outputs/thermal-52000.npy').T
 
 xyz = pts[[1, 2, 0], :].T
 xyz[:,2] *= -1
