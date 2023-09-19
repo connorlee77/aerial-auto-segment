@@ -260,7 +260,6 @@ dependencies:
       - pathtools==0.1.2
       - protobuf==4.23.1
       - pycocotools==2.0.6
-      - pydensecrf==1.0rc2
       - pyparsing==3.0.9
       - pyproj==3.5.0
       - pywavelets==1.4.1

@@ -91,7 +91,9 @@ def colorize_dynamic_world_label(label):
 
 pts = np.load('outputs/thermal-52000.npy').T
 
-xyz = pts[[1, 2, 0], :].T
+xyz = pts[[1, 2, 0], :].T # opencv coordinate frame
+
+# Go to opengl coordinate frame
 xyz[:,2] *= -1
 xyz[:,0] *= -1
 
@@ -104,6 +106,7 @@ num_vertices = xyz.shape[0]
 color = colorize_dynamic_world_label(label)
 # colors = np.hstack([color, np.ones(num_vertices).reshape(-1,1)])
 
+# Load as xyz as point cloud and compute mesh using delaunay triangulation
 cloud = pv.PolyData(xyz)
 surf = cloud.delaunay_2d()
 
