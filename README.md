@@ -32,3 +32,25 @@ To run the code, use the notebook `autoseg.ipynb`.
 
 2. Run the second cell to warp overhead labels into the drone forward-facing camera frame. Results will be stored in `outputs`. 
 
+## Preprocessing Experiments (9/26 Updates)
+
+### DynamicWorld Land Use Land Cover (LULC) Sets
+
+### Other Data Sources 
+Paths to directory on `lambda`:
+- NAIP path: `/data/microsoft_planetary_computer/naip/mosaics`
+- Digital Surface Map (DSM) path: `/data/microsoft_planetary_computer/dsm`
+- Digital Elevation Map (DEM) path: `/data/microsoft_planetary_computer/dem`
+
+| Dataset | NAIP (0.6/1.0m) visual quality | DSM (2m) Available | DEM (10m) Available | DEM 1m Available | 
+| --- | --- | --- | --- | --- |
+| Duck | Raster borders are obvious; difference in water reflectance |  Yes | Yes | No |
+| Kentucky River | Fine | Yes | Yes | Possibly (but not downloaded) | 
+| Colorado River | Fine | No | Yes | Yes (looks odd) |
+| Castaic Lake | Fine | Yes | Yes | Yes |
+| Big Bear | Raster borders obvious; clouds over the lake |  Yes | Yes | Yes |
+
+### Instructions
+1. Use scripts in `microsoft_planetarycomputer_download` to download DSM, DEM, NAIP from 2010-2021. These scripts will create mosaics as well.
+2. Use EarthExplorer to download NAIP after 2021. Create mosaics from the downloaded raster tiles using `merge_tifs.py`. See bash script `bash/merge_original_tiles.sh` for usage.
+3. Preprocess (reproject, resample, crop to bounds) using `bash/preprocess.sh`.
