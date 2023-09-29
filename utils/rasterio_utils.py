@@ -1,6 +1,8 @@
 import os
 import glob
 import cv2
+import logging
+
 import numpy as np
 
 import rasterio
@@ -8,13 +10,82 @@ import rasterio.mask
 import rasterio.merge
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 
+from utils.draw import colorize_dynamic_world_label, colorize_chesapeake_landcover_label
+
 
 def does_raster_exist(filepath):
     if not os.path.exists(filepath):
-        print('{} does not exist.'.format(filepath))
+        logging.warning('{} does not exist.'.format(filepath))
         return False
     else:
         return True
+
+
+def ensure_single_crs(rasterio_tiles, tile_dir):
+    """
+        Ensure all rasters have the same CRS.
+        ### Parameters:
+            rasterio_tiles (list): List of rasterio datasets.
+        ### Returns:
+            None
+    """
+    crs = rasterio_tiles[0].crs
+    for tile in rasterio_tiles:
+        if tile.crs != crs:
+            logging.warning('CRS mismatch: {} != {}. Reprojecting all rasters in {} to epsg:4326 (lat,lng)'.format(
+                tile_dir, tile.crs, crs))
+            reproject_rasters_batch(tile_dir, crs='EPSG:4326')
+            break
+
+
+def get_tif_files(tile_dir):
+    """
+        Get list of tif files in a directory.
+        ### Parameters:
+            tile_dir (str): Directory containing tifs.
+        ### Returns:
+            files (list): List of tif files.
+    """
+    files = []
+    for ext in ['tif', 'tiff', 'TIF', 'TIFF']:
+        files += glob.glob(os.path.join(tile_dir, '*.{}'.format(ext)))
+    return files
+
+
+def unmask_dynamic_world_raster(input_filepath, output_filepath, fill_value):
+    """
+        Fill nodata values in dynamic world raster with a specified value.
+        ### Parameters:
+            input_filepath (str): Filepath to input raster.
+            output_filepath (str): Filepath to output raster.
+            fill_value (float): Value to fill nodata values with.
+        ### Returns:
+            None
+    """
+    if not does_raster_exist(input_filepath):
+        return
+
+    with rasterio.open(input_filepath) as src:
+        data = src.read()
+        np.nan_to_num(data, copy=False, nan=fill_value)
+        kwargs = src.profile.copy()
+        kwargs.update({
+            'nodata': fill_value,
+        })
+
+        with rasterio.open(output_filepath, 'w', **kwargs) as dst:
+            dst.write(data)
+
+
+def unmask_dynamic_world_rasters_batch(tile_dir, fill_value=-9999.0):
+    """
+        Fill nodata values in dynamic world rasters in a directory with a specified value.
+        See `unmask_dynamic_world_raster` for more details.
+    """
+    logging.warning('Unmasking (filling nodata values) DynamicWorld raster...')
+    files = get_tif_files(tile_dir)
+    for f in files:
+        unmask_dynamic_world_raster(f, f, fill_value)
 
 
 def merge_rasters(tile_dir, save_dir):
@@ -26,12 +97,15 @@ def merge_rasters(tile_dir, save_dir):
         ### Returns:
             None
     """
-    files = glob.glob(os.path.join(tile_dir, '*.tif'))
+    files = get_tif_files(tile_dir)
+
     if len(files) == 0:
-        print('No files found in {}'.format(tile_dir))
+        logging.warning('No files found in {}'.format(tile_dir))
     else:
         dss = [rasterio.open(f) for f in sorted(files)]
-        ds, tform = rasterio.merge.merge(dss, nodata=0)
+        # Make sure all rasters have the same CRS before merging. If not, reproject to epsg:4326 (lat,lng)
+        ensure_single_crs(dss, tile_dir)
+        ds, tform = rasterio.merge.merge(dss, nodata=0, method='first')
 
         out_meta = dss[0].meta.copy()
         out_meta.update({
@@ -50,7 +124,7 @@ def merge_rasters(tile_dir, save_dir):
 
 def reproject_raster(input_filepath, output_filepath, dst_crs):
     """
-        Reproject raster.
+        Reproject raster to a different coordinate reference system (CRS). Does not perform any resampling.
         ### Parameters:
             input_filepath (str): Filepath to input raster.
             output_filepath (str): Filepath to output raster.
@@ -81,7 +155,18 @@ def reproject_raster(input_filepath, output_filepath, dst_crs):
                     src_crs=src.crs,
                     dst_transform=transform,
                     dst_crs=dst_crs,
-                    resampling=Resampling.nearest)
+                    resampling=Resampling.nearest,
+                    num_threads=32,
+                    warp_mem_limit=1024)
+
+
+def reproject_rasters_batch(tile_dir, crs='EPSG:4326'):
+    """
+        Reproject rasters in a directory. See `reproject_raster` for more details.
+    """
+    files = get_tif_files(tile_dir)
+    for f in files:
+        reproject_raster(f, f, crs)
 
 
 def mask_raster_by_shapely(input_filepath, output_filepath, polygon):
@@ -94,11 +179,10 @@ def mask_raster_by_shapely(input_filepath, output_filepath, polygon):
         ### Returns:
             None
     """
-    print('Masking (cropping) raster...')
+    logging.info('Masking (cropping) raster...')
     if not does_raster_exist(input_filepath):
         return
 
-    print('Applying crop mask to raster...')
     with rasterio.open(input_filepath) as src:
         out_image, out_transform = rasterio.mask.mask(
             src, [polygon], crop=True)
@@ -110,10 +194,6 @@ def mask_raster_by_shapely(input_filepath, output_filepath, polygon):
 
         with rasterio.open(output_filepath, "w", **out_meta) as dst:
             dst.write(out_image)
-            print('Input:', input_filepath, src.shape,
-                  src.crs, src.crs.linear_units, src.res)
-            print('Output:', output_filepath, dst.shape,
-                  dst.crs, dst.crs.linear_units, dst.res)
 
 
 def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, interpolation):
@@ -128,7 +208,7 @@ def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, i
         ### Returns:
             None
     """
-    print('Reprojecting and resampling raster...')
+    logging.info('Reprojecting and resampling raster...')
     if not does_raster_exist(input_filepath):
         return
 
@@ -156,13 +236,13 @@ def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, i
                     num_threads=32,
                     warp_mem_limit=1024)
 
-            print('Input:', input_filepath, src.shape,
-                  src.crs, src.crs.linear_units, src.res)
-            print('Output:', output_filepath, dst.shape,
-                  dst.crs, dst.crs.linear_units, dst.res)
+            logging.info('Input:', input_filepath, src.shape,
+                         src.crs, src.crs.linear_units, src.res)
+            logging.info('Output:', output_filepath, dst.shape,
+                         dst.crs, dst.crs.linear_units, dst.res)
 
 
-def save_raster_preview_as_png(input_filepath):
+def save_raster_preview_as_png(input_filepath, chesapeake_bay=False):
     """
         Save a preview of the raster as a png file.
         ### Parameters:
@@ -170,7 +250,7 @@ def save_raster_preview_as_png(input_filepath):
         ### Returns:
             None
     """
-    print('Saving raster preview as png...')
+    logging.info('Saving raster preview as png...')
     if not does_raster_exist(input_filepath):
         return
     with rasterio.open(input_filepath, 'r') as x:
@@ -179,21 +259,23 @@ def save_raster_preview_as_png(input_filepath):
         if C == 4 or C == 3:
             # NAIP rasters
             preview_img = img.transpose(1, 2, 0)[:, :, :3]
-            preview_img = cv2.resize(
-                preview_img, (0, 0), fx=0.05, fy=0.05, interpolation=cv2.INTER_NEAREST)
+
         elif C == 1:
-            # DSM/DEM rasters
-            preview_img = np.clip(img[0], 0, None)
-            preview_img = cv2.normalize(
-                preview_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-            preview_img = cv2.resize(
-                preview_img, (0, 0), fx=0.02, fy=0.02, interpolation=cv2.INTER_NEAREST)
-        elif C > 4:
+            if chesapeake_bay:
+                preview_img = img[-1]
+                preview_img = colorize_chesapeake_landcover_label(preview_img)
+            else:
+                # DSM/DEM rasters
+                preview_img = np.clip(img[0], 0, None)
+                preview_img = cv2.normalize(
+                    preview_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+
+        elif C == 10:
             # Dynamic World label raster
             preview_img = img[-1]
-            preview_img = cv2.normalize(
-                preview_img, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
-            preview_img = cv2.resize(
-                preview_img, (0, 0), fx=0.02, fy=0.02, interpolation=cv2.INTER_NEAREST)
+            preview_img = colorize_dynamic_world_label(preview_img)
+
+        preview_img = cv2.resize(
+            preview_img, (0, 0), fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(os.path.join(os.path.dirname(input_filepath),
                     'mosaic_preview.png'), cv2.cvtColor(preview_img, cv2.COLOR_RGB2BGR))

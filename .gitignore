@@ -4,3 +4,4 @@ outputs/
 **/*.tif
 **/*.png
 **/__pycache__/*
+**/*.pyc
