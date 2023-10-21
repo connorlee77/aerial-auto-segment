@@ -66,3 +66,19 @@ Paths to directory on `lambda`:
 1. Ensure DynamicWorld and other data are downloaded and in their respective folders. 
 2. Create mosaics from the downloaded raster tiles using `bash/merge_original_tiles.sh /data/microsoft_planetary_computer` and `bash/merge_original_tiles.sh /data/chesapeake_bay_lulc`.
 3. Preprocess (reproject, resample, crop to bounds) using `bash/batch_preprocess.sh /data/microsoft_planetary_computer` and `bash/batch_preprocess.sh /data/chesapeake_bay_lulc`.
+
+### LULC refinement via Conditional Random Fields
+1. **Convert DynamicWorld and Chesapeake Bay LULC labels into a common set of labels** (see table below) via `bash bash/commonize_lulc_labels.sh`. This is necessary if training/evaluating CRF refinement using the 1-meter resolution labels from Chesapeake Bay as ground truth. This step can be skipped if just doing CRF refinement without training but is still recommended to merge some similar labels. 
+
+    | New Index | Common Name | Dynamic World | Chesapeake Bay | 
+    | --- | --- | --- | --- |
+    | 0 | Water |Water | Water |
+    | 1 | Trees |Trees | Tree Canopy<br/> Tree Canopy over Impervious Structures<br/> Tree Canopy over Other Impervious<br/> Tree Canopy over Impervious Roads |
+    | 2 | Low Brush | Grass<br/> Crops | Low Vegetation |
+    | 3 | Shrub and Scrub | Shrub and Scrub | Shrub and Scrub |
+    | 4 | Wetlands | Flooded Vegetation | Emergent Wetlands |
+    | 5 | Human-made Structures | Built Up Area | Impervious Structures<br/> Other Impervious<br/> Impervious Roads |
+    | 6 | Bare Ground | Bare Ground | Barren |
+    | 7 | N/A |Snow/Ice  |                          |
+    | 8 | N/A |      | Aberdeen Proving Grounds |
+2. 

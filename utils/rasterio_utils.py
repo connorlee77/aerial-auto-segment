@@ -10,7 +10,7 @@ import rasterio.mask
 import rasterio.merge
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 
-from utils.draw import colorize_dynamic_world_label, colorize_chesapeake_landcover_label
+from utils.draw import colorize_dynamic_world_label, colorize_chesapeake_landcover_label, colorize_common_landcover_label
 
 
 def does_raster_exist(filepath):
@@ -242,11 +242,13 @@ def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, i
                          dst.crs, dst.crs.linear_units, dst.res)
 
 
-def save_raster_preview_as_png(input_filepath, chesapeake_bay=False):
+def save_raster_preview_as_png(input_filepath, chesapeake_bay=False, common=False):
     """
         Save a preview of the raster as a png file.
         ### Parameters:
             input_filepath (str): Filepath to input raster.
+            chesapeake_bay (bool): Whether to colorize Chesapeake Bay Landcover labels.
+            common (bool): Whether to colorize common LULC labels.
         ### Returns:
             None
     """
@@ -256,7 +258,14 @@ def save_raster_preview_as_png(input_filepath, chesapeake_bay=False):
     with rasterio.open(input_filepath, 'r') as x:
         img = x.read()
         C, _, _ = img.shape
-        if C == 4 or C == 3:
+
+        preview_filename = 'mosaic_preview.png'
+        if common:
+            preview_filename = 'converted_mosaic_preview.png'
+            preview_img = img[-1]
+            preview_img = colorize_common_landcover_label(preview_img)
+
+        elif C == 4 or C == 3:
             # NAIP rasters
             preview_img = img.transpose(1, 2, 0)[:, :, :3]
 
@@ -278,4 +287,4 @@ def save_raster_preview_as_png(input_filepath, chesapeake_bay=False):
         preview_img = cv2.resize(
             preview_img, (0, 0), fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(os.path.join(os.path.dirname(input_filepath),
-                    'mosaic_preview.png'), cv2.cvtColor(preview_img, cv2.COLOR_RGB2BGR))
+                    preview_filename), cv2.cvtColor(preview_img, cv2.COLOR_RGB2BGR))

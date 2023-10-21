@@ -10,6 +10,11 @@ def dense_crf(probability_img, base_img, **params):
 
     
     d.setUnaryEnergy(U)
+
+    # This adds the color-independent term, features are the locations only.
+    d.addPairwiseGaussian(sxy=(3, 3), compat=3, kernel=params['kernel'],
+                          normalization=params['normalization'])
+
     d.addPairwiseBilateral(
         sxy=params['sxy'], 
         srgb=params['srgb'], 
@@ -20,5 +25,5 @@ def dense_crf(probability_img, base_img, **params):
     ) 
 
     Q = d.inference(params['inference_steps'])
-    map = np.argmax(Q, axis=0).reshape(512, 640)
+    map = np.argmax(Q, axis=0).reshape(H, W)
     return map

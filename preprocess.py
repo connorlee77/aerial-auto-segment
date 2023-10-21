@@ -39,6 +39,7 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
     # Dictionary of dataset types and their interpolation methods
     dataset_type_dict = {
         'naip': dict(interpolation=rasterio.enums.Resampling.cubic),
+        'planet': dict(interpolation=rasterio.enums.Resampling.cubic),
         'dem': dict(interpolation=rasterio.enums.Resampling.bilinear),
         'dem_1m': dict(interpolation=rasterio.enums.Resampling.bilinear),
         'dsm': dict(interpolation=rasterio.enums.Resampling.cubic),

@@ -27,22 +27,30 @@ import shapely
 from shapely import Polygon
 import skimage
 
-HEX_COLORS = [
-    '#419BDF', '#397D49', '#88B053', '#7A87C6', '#E49635', '#DFC35A',
-    '#C4281B', '#ffffff', '#B39FE1', '#A8DEFF'
-]
-
 
 def dynamic_world_color_map():
+    HEX_COLORS = [
+        '#419BDF', '#397D49', '#88B053', '#7A87C6', '#E49635', '#DFC35A',
+        '#C4281B', '#ffffff', '#B39FE1'
+    ]
+
+    # HEX_COLOR_MAPPING = {
+    #     '#419BDF': 0,  # water
+    #     '#397D49': 1,  # trees
+    #     '#88B053': 2,  # grass
+    #     '#7A87C6': 3,  # Flooded vegetation
+    #     '#E49635': 4,  # Crops
+    #     '#DFC35A': 5,  # Shrub and scrub
+    #     '#C4281B': 6,  # built
+    #     '#ffffff': 7,  # bare
+    #     '#B39FE1': 8,  # snow and ice
+    # }
     rgb_colors = [ImageColor.getcolor(c, "RGB") for c in HEX_COLORS]
-    color_map = dict(zip(list(range(0, 10)), rgb_colors))
+    color_map = dict(zip(list(range(0, 9)), rgb_colors))
     return color_map
 
 
 def chesapeake_landcover_color_map():
-    # TODO: Hardcoded from a dbf file.
-    # Should be read from the dbf file instead.
-
     # name_map = {
     #     1: 'Water',
     #     2: 'Emergent Wetlands',
@@ -73,6 +81,24 @@ def chesapeake_landcover_color_map():
         12: np.array([255, 255, 115], dtype=np.uint8),
     }
 
+    return color_map
+
+
+def common_color_map():
+    common_colors = {
+        0: '#419BDF',  # water
+        1: '#397D49',  # trees, tree canopy, tree canopy over impervious structures, tree canopy over other impervious, tree canopy over impervious roads
+        2: '#88B053',  # grass, crops, low vegetation
+        3: '#DFC35A',  # scrub and shrub
+        4: '#7A87C6',  # flooded vegetation, emergent wetlands
+        5: '#C4281B',  # built, impervious structures, other impervious, impervious roads
+        6: '#ffffff',  # bare, barren
+        7: '#B39FE1',  # snow and ice
+    }
+
+    color_map = {}
+    for idx, color in common_colors.items():
+        color_map[idx] = ImageColor.getcolor(color, "RGB")
     return color_map
 
 
@@ -253,7 +279,7 @@ def colorize_dynamic_world_label(label):
 
     h, w = label.shape
     color_label = np.zeros((h, w, 3), dtype=np.uint8)
-    for i in range(0, 10):
+    for i in range(0, 9): # labels 0-8 inclusive
         color_label[label == i, :] = mapping[i]
 
     return color_label
@@ -265,6 +291,16 @@ def colorize_chesapeake_landcover_label(label):
     h, w = label.shape
     color_label = np.zeros((h, w, 3), dtype=np.uint8)
     for i in range(1, 13):  # labels 1-12 inclusive
+        color_label[label == i, :] = mapping[i]
+
+    return color_label
+
+def colorize_common_landcover_label(label):
+    mapping = common_color_map()
+
+    h, w = label.shape
+    color_label = np.zeros((h, w, 3), dtype=np.uint8)
+    for i in range(0, 8):  # labels 0-7 inclusive
         color_label[label == i, :] = mapping[i]
 
     return color_label

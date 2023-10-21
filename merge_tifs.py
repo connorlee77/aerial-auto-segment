@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_path', type=str, default='/data/microsoft_planetary_computer/',
                         help='Path to dirctory of tif tiles to merge. Directory structure should be: /DATA_PATH/.../tiles/*.tif')
-    parser.add_argument('--dataset_type', type=str, choices=['naip', 'dem', 'dem_1m', 'dsm', 'dynamicworld'],
+    parser.add_argument('--dataset_type', type=str, choices=['naip', 'dem', 'dem_1m', 'dsm', 'dynamicworld', 'planet'],
                         help='Dataset type (naip, dem, dem_1m, dsm, dynamicworld).')
     parser.add_argument('--save_preview', action='store_true',
                         help='Whether to save png preview of merged raster.')

@@ -26,3 +26,8 @@ python merge_tifs.py \
 --data_path $DATA_PATH \
 --dataset_type dynamicworld \
 --save_preview
+
+python merge_tifs.py \
+--data_path $DATA_PATH \
+--dataset_type planet \
+--save_preview
