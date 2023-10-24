@@ -1,0 +1,3 @@
+/home/connor/repos/aerial-auto-segment/build/CMakeFiles/densecrf_inference.dir
+/home/connor/repos/aerial-auto-segment/build/CMakeFiles/edit_cache.dir
+/home/connor/repos/aerial-auto-segment/build/CMakeFiles/rebuild_cache.dir

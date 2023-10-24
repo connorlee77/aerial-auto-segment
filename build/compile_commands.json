@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/connor/repos/aerial-auto-segment/build",
+  "command": "/usr/bin/g++ -isystem /usr/local/include/opencv4 -g -std=gnu++20 -o CMakeFiles/densecrf_inference.dir/densecrf_inference.cc.o -c /home/connor/repos/aerial-auto-segment/lulc_refinement/dgm/densecrf_inference.cc",
+  "file": "/home/connor/repos/aerial-auto-segment/lulc_refinement/dgm/densecrf_inference.cc"
+}
+]

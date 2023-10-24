@@ -1,0 +1,3 @@
+/home/connor/repos/aerial-auto-segment/lulc_refinement/dgm/build/CMakeFiles/densecrf_inference.dir
+/home/connor/repos/aerial-auto-segment/lulc_refinement/dgm/build/CMakeFiles/edit_cache.dir
+/home/connor/repos/aerial-auto-segment/lulc_refinement/dgm/build/CMakeFiles/rebuild_cache.dir
