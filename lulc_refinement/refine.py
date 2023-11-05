@@ -3,6 +3,7 @@ sys.path.append('../')
 
 import os
 import argparse
+import time
 
 import numpy as np
 import cv2
@@ -45,7 +46,9 @@ def force_same_shape(data_dict):
             data = cv2.resize(data, (W0, H0), interpolation=cv2.INTER_LINEAR)
 
         # Overwrite original data and make sure single channel data is not squeezed
+        print(key, data.shape)
         data_dict[key] = data.reshape(H0, W0, C)
+        print(key, data_dict[key].shape)
 
 
 def dense_crf(unary_potential, input_features, **params):
@@ -91,7 +94,7 @@ def dense_crf(unary_potential, input_features, **params):
 
     Q = d.inference(params['inference_steps'])
     map = np.argmax(Q, axis=0).reshape(H, W)
-    return map
+    return map, np.asarray(Q).reshape(C, H, W)
 
 def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, feature_set):
     '''
@@ -196,7 +199,6 @@ def create_input_features(data_dict, feature_set):
     logging.info('Input features has shape {}'.format(feature_img.shape))
     return feature_img
 
-# def intersection_over_union():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -213,13 +215,13 @@ if __name__ == '__main__':
     parser.add_argument('--feature_set', nargs='+', help='List of features to use (at least one is required)', choices=['naip', 'planet', 'dem_1m', 'dem', 'dsm'], required=True)
 
     # CRF hyperparameters
-    parser.add_argument('--theta_alpha', type=int, help='Appearance kernel (position) parameter', default=80)
-    parser.add_argument('--theta_beta', type=int, help='Appearance kernel (color) parameter', default=80)
-    parser.add_argument('--theta_gamma', type=int, help='Smoothness kernel parameter', default=80)
-    parser.add_argument('--w1', type=int, help='Appearance kernel weight', default=1)
+    parser.add_argument('--theta_alpha', type=int, help='Appearance kernel (position) parameter', default=160)
+    parser.add_argument('--theta_beta', type=int, help='Appearance kernel (color) parameter', default=3)
+    parser.add_argument('--theta_gamma', type=int, help='Smoothness kernel parameter', default=3)
+    parser.add_argument('--w1', type=int, help='Appearance kernel weight', default=5)
     parser.add_argument('--w2', type=int, help='Smoothness kernel weight', default=3)
     parser.add_argument('--kernel', type=str, help='Kernel type', choices=['full', 'diag', 'const'], default='diag')
-    parser.add_argument('--inference_steps', type=int, help='Number of inference steps', default=10)
+    parser.add_argument('--inference_steps', type=int, help='Number of inference steps', default=5)
     
     args = parser.parse_args()
 
@@ -240,7 +242,7 @@ if __name__ == '__main__':
         inference_steps=args.inference_steps,
     )
 
-    estimated_labels = dense_crf(unary_probabilities, feature_img, **crf_params)
+    estimated_labels, _ = dense_crf(unary_probabilities, feature_img, **crf_params)
     
 
     gt_label = data_dict['ground_truth'].squeeze()
