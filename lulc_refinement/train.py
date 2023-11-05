@@ -128,7 +128,7 @@ if __name__ == '__main__':
         device = torch.device('cuda:0')
         torch_prob = torch.from_numpy(estimated_probabilities).unsqueeze(0).to(device)
         print(torch_prob.shape)
-        a = torch_prob.sum(dim=0)
+        a = torch_prob.sum(dim=1)
         print(a)
         print(torch.sum(a > 1))
 
