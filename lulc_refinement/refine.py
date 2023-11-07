@@ -46,9 +46,7 @@ def force_same_shape(data_dict):
             data = cv2.resize(data, (W0, H0), interpolation=cv2.INTER_LINEAR)
 
         # Overwrite original data and make sure single channel data is not squeezed
-        print(key, data.shape)
         data_dict[key] = data.reshape(H0, W0, C)
-        print(key, data_dict[key].shape)
 
 
 def dense_crf(unary_potential, input_features, **params):

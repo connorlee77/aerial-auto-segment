@@ -5,3 +5,4 @@ outputs/
 **/*.png
 **/__pycache__/*
 **/*.pyc
+*.pyc

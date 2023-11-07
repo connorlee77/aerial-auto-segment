@@ -1,7 +1,12 @@
 python train.py \
---base_dir /data/chesapeake_bay_lulc/outputs/preprocessed \
+--base_dir /media/hdd2/data/chesapeake_bay_lulc/outputs/preprocessed \
 --epsg epsg-32618 \
 --dataset clinton virginia_beach_creeds virginia_beach_false_cape_landing \
 --resolution 1.0 \
 --unary_src dynamicworld \
---feature_set naip
+--feature_set naip \
+--parallel_jobs 10 \
+--cores-to-use 0 1 2 3 4 5 6 7 8 9 \
+--n_trials 100 \
+--study_name chesapeake-bay-crf-tuning-weighted-constrained \
+--visualize
