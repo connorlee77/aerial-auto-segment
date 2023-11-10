@@ -6,3 +6,7 @@ outputs/
 **/__pycache__/*
 **/*.pyc
 *.pyc
+
+# Custom files
+.vscode/
+lulc_refinement/data_memmap

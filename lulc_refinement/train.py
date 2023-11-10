@@ -20,7 +20,7 @@ import joblib
 
 from utils.draw import colorize_common_landcover_label
 from refine import dense_crf, read_and_preprocess_data, create_input_features
-
+from boundary_loss import BoundaryLoss
 
 def create_model_params(trial, args):
     theta_alpha = trial.suggest_int('theta_alpha', 5, 200)
@@ -58,22 +58,53 @@ def load_data(args, dataset_name):
 def crf_inference_and_loss(unary_probabilities_tile, feature_img_tile, gt_label_tile, crf_params, args, trial_id, tile_counter):
     estimated_labels, estimated_probabilities = dense_crf(unary_probabilities_tile, feature_img_tile, **crf_params)
 
-    # Compute mIoU loss using pytorch gpu
     device = torch.device('cpu')
+    if torch.cuda.is_available() and args.boundary_loss:
+        device = torch.device('cuda:0')
+
     torch_prob = torch.from_numpy(estimated_probabilities).unsqueeze(0).to(device)
-    log_probs = torch.log(torch_prob)
     gt_label_tile_tensor = torch.from_numpy(gt_label_tile).unsqueeze(0).to(device)
 
-    # TODO: remove hardcoded weights for loss function
-    weight = torch.tensor([1.00, 1.41, 2.85, 227.89, 4.78, 29.78, 28.16]).to(device)
+    if args.boundary_loss:
+        
+        boundary_loss = BoundaryLoss(
+            theta0=args.boundary_loss_theta0, theta=args.boundary_loss_theta, ignore_index=-1)
+        
+        # Boundary loss HACK: Handle case where labels are uniform
+        gt_label_classes = torch.unique(gt_label_tile_tensor)
+        pred_label_classes = torch.unique(torch.argmax(torch_prob, dim=1))
 
-    loss = F.nll_loss(
-        log_probs.float(), 
-        gt_label_tile_tensor.long(), 
-        weight=weight,
-        ignore_index=-1, 
-        reduction='mean'
-    ).item()
+        single_gt_pred = (len(gt_label_classes) == 1) and (len(pred_label_classes) == 1)
+        if single_gt_pred and gt_label_classes[0] == pred_label_classes[0]:
+            loss = 0 # Correct prediction
+        elif single_gt_pred and gt_label_classes[0] != pred_label_classes[0]:
+            loss = 1 # Very wrong prediction
+        else:
+            loss = boundary_loss(torch_prob.float(), gt_label_tile_tensor.long()).item()
+
+            if args.augment_boundary_loss:
+                log_probs = torch.log(torch_prob)
+                loss += 0.7*F.nll_loss(
+                    log_probs.float(), 
+                    gt_label_tile_tensor.long(), 
+                    weight=None,
+                    ignore_index=-1, 
+                    reduction='mean'
+                ).item()
+    else:
+        weight = None
+        if args.weight:
+            # TODO: remove hardcoded weights for loss function
+            weight = torch.tensor([1.00, 1.41, 2.85, 227.89, 4.78, 29.78, 28.16]).to(device)
+
+        log_probs = torch.log(torch_prob)
+        loss = F.nll_loss(
+            log_probs.float(), 
+            gt_label_tile_tensor.long(), 
+            weight=weight,
+            ignore_index=-1, 
+            reduction='mean'
+        ).item()
 
     if args.visualize and trial_id % 10 == 0 and tile_counter % 4 == 0:
         unary_labels = np.argmax(unary_probabilities_tile, axis=2)
@@ -260,6 +291,12 @@ if __name__ == '__main__':
     parser.add_argument('--cores-to-use', type=int, nargs='+', help='List of cores to use for parallel jobs', default=None)
     parser.add_argument('--visualize', action='store_true', help='Visualize CRF inference')
 
+    # Loss function parameters
+    parser.add_argument('--weight', action='store_true', help='Weight NLL loss function via label frequencies')
+    parser.add_argument('--boundary_loss', action='store_true', help='Use boundary loss function')
+    parser.add_argument('--boundary_loss_theta0', type=int, help='Theta0 for boundary loss function', default=3)
+    parser.add_argument('--boundary_loss_theta', type=int, help='Theta for boundary loss function', default=5)
+    parser.add_argument('--augment_boundary_loss', action='store_true', help='Augment boundary loss with NLL loss function')
     args = parser.parse_args()
     print(args)
 
@@ -279,6 +316,7 @@ if __name__ == '__main__':
     else:
         data = load_training_data(args)
         joblib.dump(data, data_filename_memmap)
+        data = joblib.load(data_filename_memmap, mmap_mode='r+') # Load with mmap write permissions
     
     if args.parallel_jobs == 1:
         study.optimize(
