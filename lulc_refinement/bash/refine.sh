@@ -5,8 +5,9 @@ python refine.py \
 --resolution 1.0 \
 --unary_src dynamicworld \
 --feature_set naip \
---theta_alpha 180 \
---theta_beta 3 \
---theta_gamma 3 \
---w1 5 \
---w2 3
+--theta_alpha 195 \
+--theta_beta 7 \
+--theta_gamma 200 \
+--w1 1 \
+--w2 1 \
+--output_dir inference_outputs/nll_unconstrained

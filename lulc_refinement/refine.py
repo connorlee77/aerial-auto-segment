@@ -205,6 +205,8 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, help='Dataset name')
     parser.add_argument('--resolution', type=str, help='Resolution of data', choices=['0.6', '1.0', '2.0', 'original_resolution'])
 
+    parser.add_argument('--output_dir', type=str, help='Output directory for CRF inference results')
+
     # Unary label source
     # TODO: add chesapeake bay-trained network as source
     parser.add_argument('--unary_src', type=str, help='Source of unary label', choices=['dynamicworld'])
@@ -254,4 +256,8 @@ if __name__ == '__main__':
     sxs1 = np.hstack([overlay, colorized_unary_labels])
     sxs2 = np.hstack([colorized_estimated_labels, colorized_gt_label])
     sxs = np.vstack([sxs1, sxs2])
-    cv2.imwrite('crf_inference.png', cv2.cvtColor(sxs, cv2.COLOR_RGB2BGR))
+    sxs = cv2.resize(sxs, (0, 0), fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
+    
+    os.makedirs(args.output_dir, exist_ok=True)
+    cv2.imwrite(os.path.join(args.output_dir, 'sxs.png'), cv2.cvtColor(sxs, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(os.path.join(args.output_dir, 'refined_labels.png'), cv2.cvtColor(colorized_estimated_labels, cv2.COLOR_RGB2BGR))
