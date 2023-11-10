@@ -23,11 +23,21 @@ from refine import dense_crf, read_and_preprocess_data, create_input_features
 from boundary_loss import BoundaryLoss
 
 def create_model_params(trial, args):
-    theta_alpha = trial.suggest_int('theta_alpha', 0.1, 200) # 5, 200
-    theta_beta = trial.suggest_int('theta_beta', 0.1, 200) # 1, 10
-    theta_gamma = trial.suggest_int('theta_gamma', 0.1, 200) # 1, 10
-    w1 = trial.suggest_int('w1', 0.1, 50) # 1, 10
-    w2 = trial.suggest_int('w2', 0.1, 50) # 1, 10
+    
+    if args.constrained:
+        # Constrained
+        theta_alpha = trial.suggest_int('theta_alpha', 5, 200) # 5, 200
+        theta_beta = trial.suggest_int('theta_beta', 1, 10) # 1, 10
+        theta_gamma = trial.suggest_int('theta_gamma', 1, 10) # 1, 10
+        w1 = trial.suggest_int('w1', 1, 10) # 1, 10
+        w2 = trial.suggest_int('w2', 1, 10) # 1, 10
+    else:
+        # Unconstrained
+        theta_alpha = trial.suggest_float('theta_alpha', 0.1, 200) # 5, 200
+        theta_beta = trial.suggest_float('theta_beta', 0.1, 200) # 1, 10
+        theta_gamma = trial.suggest_float('theta_gamma', 0.1, 200) # 1, 10
+        w1 = trial.suggest_float('w1', 0.1, 50) # 1, 10
+        w2 = trial.suggest_float('w2', 0.1, 50) # 1, 10
     
     kernel = args.kernel
     inference_steps = args.inference_steps
@@ -60,7 +70,7 @@ def crf_inference_and_loss(unary_probabilities_tile, feature_img_tile, gt_label_
 
     device = torch.device('cpu')
     if torch.cuda.is_available() and args.boundary_loss:
-        device = torch.device('cuda:0')
+        device = torch.device('cuda:{}'.format(args.device_id))
 
     torch_prob = torch.from_numpy(estimated_probabilities).unsqueeze(0).to(device)
     gt_label_tile_tensor = torch.from_numpy(gt_label_tile).unsqueeze(0).to(device)
@@ -234,6 +244,7 @@ if __name__ == '__main__':
     parser.add_argument('--parallel_jobs', type=int, help='Number of parallel jobs for optuna', default=1)
     parser.add_argument('--cores-to-use', type=int, nargs='+', help='List of cores to use for parallel jobs', default=None)
     parser.add_argument('--visualize', action='store_true', help='Visualize CRF inference')
+    parser.add_argument('--constrained', action='store_true', help='Use constrained CRF (theta parameters are integers)')
 
     # Loss function parameters
     parser.add_argument('--weight', action='store_true', help='Weight NLL loss function via label frequencies')
@@ -241,6 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--boundary_loss_theta0', type=int, help='Theta0 for boundary loss function', default=3)
     parser.add_argument('--boundary_loss_theta', type=int, help='Theta for boundary loss function', default=5)
     parser.add_argument('--augment_boundary_loss', action='store_true', help='Augment boundary loss with NLL loss function')
+    parser.add_argument('--device_id', type=int, help='GPU device ID (needed to speed up boundary loss)', default=0)
     args = parser.parse_args()
     print(args)
 
