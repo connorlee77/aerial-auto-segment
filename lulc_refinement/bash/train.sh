@@ -7,8 +7,8 @@ python train.py \
 --feature_set naip \
 --parallel_jobs 20 \
 --cores-to-use 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 \
---n_trials 100 \
+--n_trials 200 \
 --study_name chesapeake-bay-crf-tuning-boundary-loss \
 --boundary_loss \
---augment_boundary_loss \
+--device_id 1 \
 --visualize
