@@ -23,11 +23,11 @@ from refine import dense_crf, read_and_preprocess_data, create_input_features
 from boundary_loss import BoundaryLoss
 
 def create_model_params(trial, args):
-    theta_alpha = trial.suggest_int('theta_alpha', 5, 200)
-    theta_beta = trial.suggest_int('theta_beta', 1, 10)
-    theta_gamma = trial.suggest_int('theta_gamma', 1, 10)
-    w1 = trial.suggest_int('w1', 1, 10)
-    w2 = trial.suggest_int('w2', 1, 10)
+    theta_alpha = trial.suggest_int('theta_alpha', 0.1, 200) # 5, 200
+    theta_beta = trial.suggest_int('theta_beta', 0.1, 200) # 1, 10
+    theta_gamma = trial.suggest_int('theta_gamma', 0.1, 200) # 1, 10
+    w1 = trial.suggest_int('w1', 0.1, 50) # 1, 10
+    w2 = trial.suggest_int('w2', 0.1, 50) # 1, 10
     
     kernel = args.kernel
     inference_steps = args.inference_steps
@@ -174,62 +174,6 @@ def load_training_data(args):
                 last_row_hit = True
     return data
 
-    
-# def objective(trial):
-#     crf_params = create_model_params(trial, args)
-    
-#     t1 = time.time()
-#     total_loss = 0
-#     counter = 0
-#     for dataset_name in args.datasets:
-#         unary_probabilities, feature_img, gt_label = load_data(args, dataset_name)
-#         H, W, C = unary_probabilities.shape
-
-#         tile_counter = 0
-#         tile_size = 2000
-#         overlap = int(tile_size / 4)
-#         r = 0
-#         last_row_hit = False
-#         while r + tile_size <= H:
-#             c = 0
-#             last_col_hit = False
-#             while c + tile_size <= W:
-#                 unary_probabilities_tile, feature_img_tile, gt_label_tile = crop_images(
-#                     unary_probabilities, 
-#                     feature_img, 
-#                     gt_label, 
-#                     r, r + tile_size, c, c + tile_size
-#                 )
-
-#                 if np.sum(gt_label_tile >= 0) != 0:
-#                     loss = crf_inference_and_loss(
-#                         unary_probabilities_tile, 
-#                         feature_img_tile, 
-#                         gt_label_tile, 
-#                         crf_params, 
-#                         args, 
-#                         trial.number, 
-#                         tile_counter
-#                     )
-
-#                     total_loss += loss
-#                     counter += 1
-
-#                 c += tile_size - overlap
-#                 if not last_col_hit and c + tile_size > W:
-#                     c = W - tile_size
-#                     last_col_hit = True
-                
-#                 tile_counter += 1
-
-#             r += tile_size - overlap
-#             if not last_row_hit and r + tile_size > H:
-#                 r = H - tile_size
-#                 last_row_hit = True
-
-#         t2 = time.time()
-#         print('Time: ', t2 - t1)     
-#     return total_loss / counter
 
 def objective(trial):
     crf_params = create_model_params(trial, args)
