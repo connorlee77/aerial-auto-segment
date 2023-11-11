@@ -1,13 +1,12 @@
 python refine.py \
---base_dir /media/hdd2/data/chesapeake_bay_lulc/outputs/preprocessed \
+--base_dir /data/chesapeake_bay_lulc/outputs/preprocessed \
 --epsg epsg-32618 \
---dataset virginia_beach_creeds \
+--dataset clinton \
 --resolution 1.0 \
 --unary_src dynamicworld \
---feature_set naip \
+--feature_set naip naip-nir naip-ndvi dsm surface_height \
 --theta_alpha 195 \
---theta_beta 7 \
---theta_gamma 200 \
---w1 1 \
---w2 1 \
---output_dir inference_outputs/nll_unconstrained
+--theta_beta_list 9 9 9 9 9 9 9 \
+--theta_gamma 1 \
+--w1 10 \
+--w2 1 
