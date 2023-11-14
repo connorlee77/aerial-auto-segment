@@ -215,11 +215,11 @@ if __name__ == '__main__':
     parser.add_argument('--feature_set', nargs='+', help='List of features to use (at least one is required)', choices=['naip', 'planet', 'dem_1m', 'dem', 'dsm'], required=True)
 
     # CRF hyperparameters
-    parser.add_argument('--theta_alpha', type=int, help='Appearance kernel (position) parameter', default=160)
-    parser.add_argument('--theta_beta', type=int, help='Appearance kernel (color) parameter', default=3)
-    parser.add_argument('--theta_gamma', type=int, help='Smoothness kernel parameter', default=3)
-    parser.add_argument('--w1', type=int, help='Appearance kernel weight', default=5)
-    parser.add_argument('--w2', type=int, help='Smoothness kernel weight', default=3)
+    parser.add_argument('--theta_alpha', type=float, help='Appearance kernel (position) parameter', default=160)
+    parser.add_argument('--theta_beta', type=float, help='Appearance kernel (color) parameter', default=3)
+    parser.add_argument('--theta_gamma', type=float, help='Smoothness kernel parameter', default=3)
+    parser.add_argument('--w1', type=float, help='Appearance kernel weight', default=5)
+    parser.add_argument('--w2', type=float, help='Smoothness kernel weight', default=3)
     parser.add_argument('--kernel', type=str, help='Kernel type', choices=['full', 'diag', 'const'], default='diag')
     parser.add_argument('--inference_steps', type=int, help='Number of inference steps', default=5)
     
