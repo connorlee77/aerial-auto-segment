@@ -10,3 +10,5 @@ outputs/
 # Custom files
 .vscode/
 lulc_refinement/data_memmap
+**/*.dat
+**/*.db
