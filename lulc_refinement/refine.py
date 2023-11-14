@@ -1,17 +1,20 @@
 import sys
+
 sys.path.append('../')
 
-from utils.draw import colorize_common_landcover_label
-from pydensecrf.utils import create_pairwise_bilateral, create_pairwise_gaussian
-import pydensecrf.densecrf as dcrf
+import argparse
 import logging
-import rasterio
+import os
+import time
+
 import cv2
 import numpy as np
-import time
-import argparse
-import os
+import pydensecrf.densecrf as dcrf
+import rasterio
+from pydensecrf.utils import (create_pairwise_bilateral,
+                              create_pairwise_gaussian)
 
+from utils.draw import colorize_common_landcover_label
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
@@ -77,38 +80,60 @@ def dense_crf(unary_potential, input_features, **params):
     d.setUnaryEnergy(U)
 
     _, _, n_channels = input_features.shape
+
+    # If there is only one theta_beta value, use it for all channels (by passing a numerical type instead of a list)
+    theta_betas_list = params['theta_betas']
+    theta_betas = theta_betas_list[0] if len(theta_betas_list) == 1 else theta_betas_list
+
+    pairwise_bilateral_energy = create_pairwise_bilateral(
+        sdims=(params['theta_alpha'], params['theta_alpha']),
+        schan=theta_betas,
+        img=input_features,
+        chdim=2,
+    )
+
+    pairwise_gaussian_energy = create_pairwise_gaussian(
+        sdims=(params['theta_gamma'], params['theta_gamma']),
+        shape=(H, W),
+    )
+
+    d.addPairwiseEnergy(pairwise_bilateral_energy,
+                        compat=params['w1'], kernel=kernel, normalization=params['normalization'])
+    d.addPairwiseEnergy(pairwise_gaussian_energy, compat=params['w2'],
+                        kernel=kernel, normalization=params['normalization'])
+
     # TODO: Fix this hack. Should be simple removal of first if statement, but test it out.
-    if n_channels == 3:
-        # Smoothness kernel
-        d.addPairwiseGaussian(sxy=params['theta_gamma'], compat=params['w2'], kernel=kernel,
-                            normalization=params['normalization'])
-        # Appearance kernel
-        d.addPairwiseBilateral(
-            sxy=params['theta_alpha'],
-            srgb=params['theta_beta'],
-            rgbim=input_features,
-            compat=params['w1'],
-            kernel=kernel,
-            normalization=params['normalization'],
-        )
-    else:
-        assert len(params['theta_beta_list']) == n_channels, 'theta_beta_list must have same number of channels as input features'
-        pairwise_bilateral_energy = create_pairwise_bilateral(
-            sdims=(params['theta_alpha'], params['theta_alpha']),
-            schan=params['theta_beta_list'],
-            img=input_features,
-            chdim=2,
-        )
+    # if n_channels == 3:
+    #     # Smoothness kernel
+    #     d.addPairwiseGaussian(sxy=params['theta_gamma'], compat=params['w2'], kernel=kernel,
+    #                         normalization=params['normalization'])
+    #     # Appearance kernel
+    #     d.addPairwiseBilateral(
+    #         sxy=params['theta_alpha'],
+    #         srgb=params['theta_beta'],
+    #         rgbim=input_features,
+    #         compat=params['w1'],
+    #         kernel=kernel,
+    #         normalization=params['normalization'],
+    #     )
+    # else:
+    #     assert len(params['theta_beta_list']) == n_channels, 'theta_beta_list must have same number of channels as input features'
+    #     pairwise_bilateral_energy = create_pairwise_bilateral(
+    #         sdims=(params['theta_alpha'], params['theta_alpha']),
+    #         schan=params['theta_beta_list'],
+    #         img=input_features,
+    #         chdim=2,
+    #     )
 
-        pairwise_gaussian_energy = create_pairwise_gaussian(
-            sdims=(params['theta_gamma'], params['theta_gamma']),
-            shape=(H, W),
-        )
+    #     pairwise_gaussian_energy = create_pairwise_gaussian(
+    #         sdims=(params['theta_gamma'], params['theta_gamma']),
+    #         shape=(H, W),
+    #     )
 
-        d.addPairwiseEnergy(pairwise_bilateral_energy,
-                            compat=params['w1'], kernel=kernel, normalization=params['normalization'])
-        d.addPairwiseEnergy(pairwise_gaussian_energy, compat=params['w2'],
-                            kernel=kernel, normalization=params['normalization'])
+    #     d.addPairwiseEnergy(pairwise_bilateral_energy,
+    #                         compat=params['w1'], kernel=kernel, normalization=params['normalization'])
+    #     d.addPairwiseEnergy(pairwise_gaussian_energy, compat=params['w2'],
+    #                         kernel=kernel, normalization=params['normalization'])
 
     Q = d.inference(params['inference_steps'])
     map = np.argmax(Q, axis=0).reshape(H, W)
@@ -278,14 +303,14 @@ def create_input_features(data_dict, feature_set):
 
     if 'surface_height' in feature_set:
         assert 'dsm' in data_dict, 'DSM not found in data_dict for surface height computation'
-        
+
         if 'dem_1m' in data_dict:
             surface_height = compute_surface_height(data_dict['dsm'], data_dict['dem_1m'])
         elif 'dem' in data_dict:
             surface_height = compute_surface_height(data_dict['dsm'], data_dict['dem'])
         else:
             raise ValueError('No DEMs available in data_dict for surface height computation')
-        
+
         feature_img_list.append(surface_height)
 
     feature_img = np.concatenate(feature_img_list, axis=2)
@@ -314,8 +339,7 @@ if __name__ == '__main__':
 
     # CRF hyperparameters
     parser.add_argument('--theta_alpha', type=int, help='Appearance kernel (position) parameter', default=160)
-    parser.add_argument('--theta_beta', type=int, help='Appearance kernel (color) parameter', default=3)
-    parser.add_argument('--theta_beta_list', nargs='+', type=int, help='Appearance kernel (color) parameter list', default=[3, 3, 3])
+    parser.add_argument('--theta_betas', type=int, nargs='+', help='Appearance kernel (color) parameters', default=[3])
     parser.add_argument('--theta_gamma', type=int, help='Smoothness kernel parameter', default=3)
     parser.add_argument('--w1', type=int, help='Appearance kernel weight', default=5)
     parser.add_argument('--w2', type=int, help='Smoothness kernel weight', default=3)
@@ -332,8 +356,7 @@ if __name__ == '__main__':
 
     crf_params = dict(
         theta_alpha=args.theta_alpha,
-        theta_beta=args.theta_beta,
-        theta_beta_list=args.theta_beta_list,
+        theta_betas=args.theta_betas,
         theta_gamma=args.theta_gamma,
         w1=args.w1,
         w2=args.w2,

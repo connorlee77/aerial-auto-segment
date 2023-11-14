@@ -3,12 +3,14 @@ python train.py \
 --epsg epsg-32618 \
 --dataset clinton virginia_beach_creeds virginia_beach_false_cape_landing \
 --resolution 1.0 \
---unary_src dynamicworld \
---feature_set naip \
 --parallel_jobs 20 \
---cores-to-use 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 \
---n_trials 200 \
---study_name chesapeake-bay-crf-tuning-boundary-loss \
+--cores-to-use 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 \
+--n_trials 100 \
+--unary_src dynamicworld \
+--feature_set naip naip-nir naip-ndvi surface_height \
+--nonconstant_kernel_parameters \
+--n_feature_channels 6 \
+--study_name chesapeake-bay-crf-tuning-boundary-loss-nir-ndvi-surface-height \
 --boundary_loss \
 --device_id 1 \
 --visualize
