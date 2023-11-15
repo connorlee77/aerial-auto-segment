@@ -11,7 +11,7 @@ import numpy as np
 import pydensecrf.densecrf as dcrf
 from dense_crf import dense_crf
 from lulc_utils import (create_input_features, label_to_geotiff,
-                        read_and_preprocess_data)
+                        read_and_preprocess_data, check_using_3D_features)
 from utils.draw import colorize_common_landcover_label
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
@@ -37,16 +37,19 @@ if __name__ == '__main__':
                         choices=['naip', 'naip-nir', 'naip-ndvi', 'planet', 'dem_1m', 'dem', 'dsm', 'surface_height'], required=True)
 
     # CRF hyperparameters
-    parser.add_argument('--theta_alpha', type=float, help='Appearance kernel (position) parameter', default=160)
+    parser.add_argument('--theta_alpha', type=float, help='Appearance kernel (position x, y) parameter', default=160)
+    parser.add_argument('--theta_alpha_z', type=float, help='Appearance kernel (position z) parameter', default=-1)
     parser.add_argument('--theta_betas', type=float, nargs='+',
                         help='Appearance kernel (color) parameters', default=[3])
-    parser.add_argument('--theta_gamma', type=float, help='Smoothness kernel parameter', default=3)
+    parser.add_argument('--theta_gamma', type=float, help='Smoothness kernel parameter (x,y)', default=3)
+    parser.add_argument('--theta_gamma_z', type=float, help='Smoothness kernel parameter (z)', default=-1)
     parser.add_argument('--w1', type=float, help='Appearance kernel weight', default=5)
     parser.add_argument('--w2', type=float, help='Smoothness kernel weight', default=3)
     parser.add_argument('--kernel', type=str, help='Kernel type', choices=['full', 'diag', 'const'], default='diag')
     parser.add_argument('--inference_steps', type=int, help='Number of inference steps', default=5)
 
     args = parser.parse_args()
+    args.use_3d = check_using_3D_features(args.feature_set)
     print(args)
 
     data_dict = read_and_preprocess_data(args.base_dir, args.epsg, args.dataset,
@@ -54,10 +57,18 @@ if __name__ == '__main__':
     feature_img = create_input_features(data_dict, args.feature_set)
     unary_probabilities = data_dict['unary'][:, :, :-1]
 
+    theta_alpha_z, theta_gamma_z = None, None
+    if args.use_3d:
+        assert args.theta_gamma_z > 0 and args.theta_alpha_z > 0, 'theta_gamma_z and theta_alpha_z must be positive'
+        theta_alpha_z = args.theta_alpha_z
+        theta_gamma_z = args.theta_gamma_z
+
     crf_params = dict(
         theta_alpha=args.theta_alpha,
+        theta_alpha_z=theta_alpha_z,
         theta_betas=args.theta_betas,
         theta_gamma=args.theta_gamma,
+        theta_gamma_z=theta_gamma_z,
         w1=args.w1,
         w2=args.w2,
         kernel=args.kernel,

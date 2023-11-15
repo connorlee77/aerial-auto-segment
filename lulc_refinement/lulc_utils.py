@@ -7,6 +7,12 @@ import rasterio
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
+feature_set_3D = set(['dem_1m', 'dem', 'dsm', 'surface_height'])
+def check_using_3D_features(feature_set):
+    for feature_name in feature_set:
+        if feature_name in feature_set_3D:
+            return True
+    return False
 
 ####################################################################################################
 # Helper functions for data I/O ###
@@ -146,15 +152,14 @@ def create_input_features(data_dict, feature_set):
 
     if 'planet' in feature_set:  # 3m resolution
         feature_img_list.append(data_dict['planet'])
-
+    
     if 'dem_1m' in feature_set:  # 1m resolution
         feature_img_list.append(preprocess_dxm(data_dict['dem_1m']))
-    if 'dem' in feature_set:  # 10m resolution
+    elif 'dem' in feature_set:  # 10m resolution
         feature_img_list.append(preprocess_dxm(data_dict['dem']))
-    if 'dsm' in feature_set:  # 2m resolution
+    elif 'dsm' in feature_set:  # 2m resolution
         feature_img_list.append(preprocess_dxm(data_dict['dsm']))
-
-    if 'surface_height' in feature_set:
+    elif 'surface_height' in feature_set:
         assert 'dsm' in data_dict, 'DSM not found in data_dict for surface height computation'
 
         if 'dem_1m' in data_dict:

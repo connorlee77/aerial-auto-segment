@@ -15,7 +15,7 @@ import torch
 import torch.nn.functional as F
 from boundary_loss import BoundaryLoss
 from dense_crf import dense_crf
-from lulc_utils import create_input_features, read_and_preprocess_data
+from lulc_utils import create_input_features, read_and_preprocess_data, check_using_3D_features
 from utils.draw import colorize_common_landcover_label
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
@@ -43,17 +43,27 @@ def create_model_params(trial, args):
     if args.nonconstant_kernel_parameters:
         assert args.n_feature_channels > 0, 'Must specify number of feature channels if using nonconstant kernel parameters'
         theta_betas_list = []
-        for i in range(args.n_feature_channels):
+        actual_channels = args.n_feature_channels
+        if args.use_3d:
+            actual_channels -= 1
+        for i in range(actual_channels):
             theta_i = trial.suggest_float('theta_beta_{}'.format(i), 0.1, 200)
             theta_betas_list.append(theta_i)
+
+    theta_alpha_z, theta_gamma_z = None, None
+    if args.use_3d:
+        theta_alpha_z = trial.suggest_float('theta_alpha_z', 0.1, 200)
+        theta_gamma_z = trial.suggest_float('theta_gamma_z', 0.1, 200)
 
     kernel = args.kernel
     inference_steps = args.inference_steps
 
     crf_params = dict(
         theta_alpha=theta_alpha,
+        theta_alpha_z=theta_alpha_z,
         theta_betas=theta_betas_list,
         theta_gamma=theta_gamma,
+        theta_gamma_z=theta_gamma_z,
         w1=w1,
         w2=w2,
         kernel=kernel,
@@ -284,6 +294,8 @@ if __name__ == '__main__':
                         help='Augment boundary loss with NLL loss function')
     parser.add_argument('--device_id', type=int, help='GPU device ID (needed to speed up boundary loss)', default=0)
     args = parser.parse_args()
+    
+    args.use_3d = check_using_3D_features(args.feature_set)
     print(args)
 
     optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))

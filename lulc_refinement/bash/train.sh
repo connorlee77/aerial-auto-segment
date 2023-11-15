@@ -1,3 +1,4 @@
+# n feature channels should be all of the channels combined, including surface, even though it is used separately
 python train.py \
 --base_dir /data/chesapeake_bay_lulc/outputs/preprocessed \
 --epsg epsg-32618 \
@@ -12,5 +13,5 @@ python train.py \
 --n_feature_channels 6 \
 --study_name chesapeake-bay-crf-tuning-boundary-loss-nir-ndvi-surface-height \
 --boundary_loss \
---device_id 1 \
+--device_id 0 \
 --visualize
