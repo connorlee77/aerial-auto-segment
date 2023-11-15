@@ -1,0 +1,12 @@
+Namespace(refined_label_data_dir=None, compute_dynamicworld_baseline=True, ground_truth_data_dir='/media/hdd2/data/chesapeake_bay_lulc', resolution='1.0', unary_src='dynamicworld', base_img_src='naip', device=None)
+Computing dynamicworld baseline metrics...
+Boundary metric:  tensor(0.9450)
+mIoU:  0.4317613016941405
+--- Class IoUs ---
+water: 0.9350446462631226
+trees: 0.648834764957428
+low vegetation: 0.512701153755188
+scrub and shrub: 0.0021153977140784264
+flooded vegetation: 0.08249246329069138
+built: 0.23451632261276245
+bare: 0.60662442445755

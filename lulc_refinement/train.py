@@ -5,19 +5,17 @@ sys.path.append('../')
 import argparse
 import logging
 import os
-import time
 
 import cv2
 import joblib
 import numpy as np
 import optuna
 import pydensecrf.densecrf as dcrf
-import rasterio
 import torch
 import torch.nn.functional as F
 from boundary_loss import BoundaryLoss
-from refine import create_input_features, dense_crf, read_and_preprocess_data
-
+from dense_crf import dense_crf
+from lulc_utils import create_input_features, read_and_preprocess_data
 from utils.draw import colorize_common_landcover_label
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)

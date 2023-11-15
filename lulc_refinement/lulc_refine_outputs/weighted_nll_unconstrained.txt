@@ -1,0 +1,12 @@
+Namespace(refined_label_data_dir='lulc_refine_outputs/weighted_nll_unconstrained', compute_dynamicworld_baseline=False, ground_truth_data_dir='/media/hdd2/data/chesapeake_bay_lulc', resolution='1.0', unary_src='dynamicworld', base_img_src='naip', device=None)
+Computing refined prediction metrics...
+Boundary metric:  tensor(0.9144)
+mIoU:  0.4414960896740627
+--- Class IoUs ---
+water: 0.9335321187973022
+trees: 0.6689164638519287
+low vegetation: 0.5297571420669556
+scrub and shrub: 0.0018304364057257771
+flooded vegetation: 0.06178458407521248
+built: 0.25184160470962524
+bare: 0.6428103446960449
