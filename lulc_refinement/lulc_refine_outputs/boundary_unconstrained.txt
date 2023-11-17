@@ -1,5 +1,6 @@
 Namespace(refined_label_data_dir='lulc_refine_outputs/boundary_unconstrained', compute_dynamicworld_baseline=False, ground_truth_data_dir='/media/hdd2/data/chesapeake_bay_lulc', resolution='1.0', unary_src='dynamicworld', base_img_src='naip', device=None)
 Computing refined prediction metrics...
+tensor([[0.2419, 0.1731, 0.2538, 0.0013, 0.1211, 0.3605, 0.2242]]) tensor([[0.4390, 0.3957, 0.1796, 0.0579, 0.1109, 0.4096, 0.4475]]) tensor([[ 418193., 1379965.,  456315.,    5150.,   97735.,  418876.,  107739.]]) tensor([[1729139., 7972548., 1797621., 4076141.,  807053., 1161945.,  480633.]]) tensor([[ 360822., 1108355.,  457259.,    5328.,  113904.,  375596.,  108414.]]) tensor([[ 821918., 2800751., 2546467.,   91947., 1026771.,  917027.,  242280.]])
 Boundary metric:  tensor(0.7766)
 mIoU:  0.4521053839778988
 --- Class IoUs ---

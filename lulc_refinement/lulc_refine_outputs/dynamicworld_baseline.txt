@@ -1,5 +1,6 @@
 Namespace(refined_label_data_dir=None, compute_dynamicworld_baseline=True, ground_truth_data_dir='/media/hdd2/data/chesapeake_bay_lulc', resolution='1.0', unary_src='dynamicworld', base_img_src='naip', device=None)
 Computing dynamicworld baseline metrics...
+tensor([[0.1709, 0.1364, 0.2004, 0.0035, 0.1170, 0.2000, 0.2174]]) tensor([[0.0532, 0.0407, 0.0224, 0.0208, 0.0139, 0.0380, 0.0698]]) tensor([[38880., 95240., 46880.,  1507., 12323., 27876., 14677.]]) tensor([[227451., 698060., 233911., 428103., 105334., 139388.,  67513.]]) tensor([[ 43729., 113913.,  57147.,   1909.,  14322.,  34839.,  16915.]]) tensor([[ 821918., 2800751., 2546467.,   91947., 1026771.,  917027.,  242280.]])
 Boundary metric:  tensor(0.9450)
 mIoU:  0.4317613016941405
 --- Class IoUs ---

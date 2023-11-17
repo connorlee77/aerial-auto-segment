@@ -1,0 +1,13 @@
+Namespace(refined_label_data_dir='lulc_refine_outputs/boundary_naip_nir_surface', compute_dynamicworld_baseline=False, ground_truth_data_dir='/media/hdd2/data/chesapeake_bay_lulc', resolution='1.0', unary_src='dynamicworld', base_img_src='naip_naip-nir_surface_height', device=None)
+Computing refined prediction metrics...
+tensor([[0.4336, 0.2216, 0.4275, 0.0007, 0.2190, 0.4526, 0.2676]]) tensor([[0.4301, 0.3173, 0.1869, 0.0194, 0.0894, 0.3721, 0.4335]]) tensor([[353269., 984376., 455523.,   1828.,  87452., 354168.,  97845.]]) tensor([[ 814807., 4441719., 1065489., 2437394.,  399297.,  782442.,  365697.]]) tensor([[353527., 888688., 476061.,   1787.,  91758., 341206., 105033.]]) tensor([[ 821918., 2800751., 2546467.,   91947., 1026771.,  917027.,  242280.]])
+Boundary metric:  tensor(0.7399)
+mIoU:  0.4564809090367925
+--- Class IoUs ---
+water: 0.9554652571678162
+trees: 0.6950809955596924
+low vegetation: 0.555946946144104
+scrub and shrub: 0.0014278769958764315
+flooded vegetation: 0.05110996589064598
+built: 0.2866436839103699
+bare: 0.6496915817260742
