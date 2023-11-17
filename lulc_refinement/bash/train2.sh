@@ -1,16 +1,16 @@
-# n feature channels should be all of the channels combined, including surface, even though it is used separately
 python train.py \
 --base_dir /data/chesapeake_bay_lulc/outputs/preprocessed \
 --epsg epsg-32618 \
 --dataset clinton virginia_beach_creeds virginia_beach_false_cape_landing \
 --resolution 1.0 \
 --parallel_jobs 20 \
+--cores-to-use 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 \
 --n_trials 100 \
 --unary_src dynamicworld \
---feature_set naip naip-ndvi surface_height \
+--feature_set naip surface_height \
 --nonconstant_kernel_parameters \
---n_feature_channels 5 \
---study_name chesapeake-bay-crf-tuning-boundary-loss-ndvi-surface-height \
+--n_feature_channels 4 \
+--study_name chesapeake-bay-crf-tuning-boundary-loss-surface-height \
 --boundary_loss \
---device_id 0 \
+--device_id 1 \
 --visualize
