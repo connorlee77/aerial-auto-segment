@@ -123,12 +123,13 @@ if __name__ == '__main__':
     parser.add_argument('--resolution', default='1.0', type=str, help='Resolution of data')
     parser.add_argument('--unary-src', default='dynamicworld', type=str,
                         choices=['dynamicworld'], help='Source of unary label')
-    parser.add_argument('--base-img-src', default='naip', type=str,
-                        help='Main image source used to refine CRF', choices=['naip', 'planet'])
+    parser.add_argument('--base-img-src', default=['naip'], type=str, nargs='+',
+                        help='Main image source used to refine CRF', choices=['naip', 'naip-nir', 'naip-ndvi', 'surface_height', 'planet'])
 
     parser.add_argument('--device', type=int, help='GPU device number', default=None)
 
     args = parser.parse_args()
+    args.base_img_src = '_'.join(args.base_img_src)
     print(args)
 
     device = torch.device('cuda:{}'.format(args.device) if args.device is not None else 'cpu')

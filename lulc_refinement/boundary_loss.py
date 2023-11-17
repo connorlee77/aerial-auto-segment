@@ -189,7 +189,7 @@ class BoundaryMetric:
     def compute(self):
         P = self.tp / (self.tpfp + 1e-7)
         R = self.tn / (self.tnfn + 1e-7)
-
+        print(P, R, self.tp, self.tpfp, self.tn, self.tnfn)
         # Boundary F1 Score
         F1 = 2 * P * R / (P + R + 1e-7)
         metric = torch.mean(1 - F1)
