@@ -7,11 +7,10 @@ python train.py \
 --parallel_jobs 25 \
 --n_trials 100 \
 --unary_src dynamicworld \
---feature_set naip naip-nir surface_height \
+--feature_set naip naip-nir dsm \
 --nonconstant_kernel_parameters \
 --n_feature_channels 5 \
---study_name chesapeake-bay-crf-tuning-boundary-loss-nir-surface-height \
+--study_name chesapeake-bay-crf-tuning-boundary-loss-nir-dsm \
 --boundary_loss \
 --device_id 0 \
---constrained \
 --visualize

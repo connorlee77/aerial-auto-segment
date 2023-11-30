@@ -43,13 +43,15 @@ Notes:
 - Use the tag `--dryrun` to save a local preview of the LULC mosaic before committing to the full export. 
 - Modify the `--start-date` and `--end-date` as needed. This range should just encompass the date the data trajectory was taken, but enlarged such that a full mosaic can be rendered (missing data may be present in some DynamicWorld tile rasters).
 
-### Download NAIP/DSM/DEM tiles
+### Download NAIP/Planet/DSM/DEM tiles
 1. Use scripts in `microsoft_planetarycomputer_download` to download DSM, DEM, NAIP from 2010-2021.
 2. Use EarthExplorer to download NAIP after 2021. 
 3. Place all downloaded tiles in their respective folders shown above.
+4. Planet must be downloaded as single composite `.tif` files. More code would need to be written to handle tiles.  
 
 Paths to directory on `lambda`:
 - NAIP path: `/data/microsoft_planetary_computer/naip/PLACE/tiles`
+- Planet path: `/data/microsoft_planetary_computer/planet/PLACE/[visual / 4band]` 
 - Digital Surface Map (DSM) path: `/data/microsoft_planetary_computer/dsm/PLACE/tiles`
 - Digital Elevation Map (DEM 10 meters) path: `/data/microsoft_planetary_computer/dem/PLACE/tiles`
 - Digital Elevation Map (DEM 1 meter) path: `/data/microsoft_planetary_computer/dem_1m/PLACE/tiles`
@@ -65,7 +67,8 @@ Paths to directory on `lambda`:
 ### Create and preprocess tiles into mosaics
 1. Ensure DynamicWorld and other data are downloaded and in their respective folders. 
 2. Create mosaics from the downloaded raster tiles using `bash/merge_original_tiles.sh /data/microsoft_planetary_computer` and `bash/merge_original_tiles.sh /data/chesapeake_bay_lulc`.
-3. Preprocess (reproject, resample, crop to bounds) using `bash/batch_preprocess.sh /data/microsoft_planetary_computer` and `bash/batch_preprocess.sh /data/chesapeake_bay_lulc`.
+3. Combine planet RGB (3 band) with NIR from 4 band surface reflectance data using `bash bash/stack_planet_visual_nir.sh`. Note: this stores directly into the `mosaic` directories.   
+4. Preprocess (reproject, resample, crop to bounds) using `bash/batch_preprocess.sh /data/microsoft_planetary_computer` and `bash/batch_preprocess.sh /data/chesapeake_bay_lulc`.
 
 ### LULC refinement via Conditional Random Fields
 1. **Convert DynamicWorld and Chesapeake Bay LULC labels into a common set of labels** (see table below) via `bash bash/commonize_lulc_labels.sh`. This is necessary if training/evaluating CRF refinement using the 1-meter resolution labels from Chesapeake Bay as ground truth. This step can be skipped if just doing CRF refinement without training but is still recommended to merge some similar labels. 

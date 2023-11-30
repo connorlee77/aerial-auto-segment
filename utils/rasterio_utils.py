@@ -1,16 +1,18 @@
-import os
 import glob
-import cv2
 import logging
+import os
 
+import cv2
 import numpy as np
-
 import rasterio
 import rasterio.mask
 import rasterio.merge
-from rasterio.warp import calculate_default_transform, reproject, Resampling
-
-from utils.draw import colorize_dynamic_world_label, colorize_chesapeake_landcover_label, colorize_common_landcover_label
+from rasterio.warp import Resampling, calculate_default_transform, reproject
+from utils.draw import (colorize_chesapeake_cvpr_landcover_label,
+                        colorize_chesapeake_landcover_label,
+                        colorize_common_landcover_label,
+                        colorize_dynamic_world_label,
+                        colorize_open_earth_map_landcover_label)
 
 
 def does_raster_exist(filepath):
@@ -242,7 +244,7 @@ def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, i
                          dst.crs, dst.crs.linear_units, dst.res)
 
 
-def save_raster_preview_as_png(input_filepath, chesapeake_bay=False, common=False):
+def save_raster_preview_as_png(input_filepath, chesapeake_bay=False, common=False, chesapeake_cvpr=False, open_earth_map=False):
     """
         Save a preview of the raster as a png file.
         ### Parameters:
@@ -264,7 +266,12 @@ def save_raster_preview_as_png(input_filepath, chesapeake_bay=False, common=Fals
             preview_filename = 'converted_mosaic_preview.png'
             preview_img = img[-1]
             preview_img = colorize_common_landcover_label(preview_img)
-
+        elif chesapeake_cvpr:
+            preview_img = img[-1]
+            preview_img = colorize_chesapeake_cvpr_landcover_label(preview_img)
+        elif open_earth_map:
+            preview_img = img[-1]
+            preview_img = colorize_open_earth_map_landcover_label(preview_img)
         elif C == 4 or C == 3:
             # NAIP rasters
             preview_img = img.transpose(1, 2, 0)[:, :, :3]
@@ -287,7 +294,7 @@ def save_raster_preview_as_png(input_filepath, chesapeake_bay=False, common=Fals
         preview_img = cv2.resize(
             preview_img, (0, 0), fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(os.path.join(os.path.dirname(input_filepath),
-                    preview_filename), cv2.cvtColor(preview_img, cv2.COLOR_RGB2BGR))
+                    preview_filename), cv2.cvtColor(preview_img.astype(np.uint8), cv2.COLOR_RGB2BGR))
 
 
 def save_raster_preview_as_ppm(input_filepath, chesapeake_bay=False, common=False):

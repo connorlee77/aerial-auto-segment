@@ -12,3 +12,6 @@ outputs/
 lulc_refinement/data_memmap
 **/*.dat
 **/*.db
+**/*.ckpt
+**/*.pt
+**/*.pth

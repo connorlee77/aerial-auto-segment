@@ -45,6 +45,14 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
         'dsm': dict(interpolation=rasterio.enums.Resampling.cubic),
         'dynamicworld': dict(interpolation=rasterio.enums.Resampling.nearest),
         'chesapeake_bay_lc': dict(interpolation=rasterio.enums.Resampling.nearest),
+
+        # Mosaics from LULC inference models
+        'open_earth_map_unet_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
+        'open_earth_map_unet_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
+        'chesapeake_bay_swin_crossentropy_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
+        'chesapeake_bay_swin_crossentropy_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
+        'chesapeake_bay_swin_focalloss_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
+        'chesapeake_bay_swin_focalloss_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
     }
 
     # Read label raster data (dynamic world labels)
@@ -64,7 +72,9 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
             logging.warning(
                 '{} does not exist, skipping...'.format(original_path))
             continue
-
+        else:
+            logging.info('Processing {}'.format(original_path))
+            
         # Create filepath to the non-existing reprojected, resampled, and masked mosaic.
         reprojected_path = os.path.join(output_folder, 'epsg-{}'.format(
             epsg_code), place_name, dataset_type, res_folder, 'mosaic.tiff')
@@ -76,7 +86,12 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
             mask_raster_by_shapely(
                 reprojected_path, reprojected_path, target_polygon)
             if save_raster_previews:
-                save_raster_preview_as_png(reprojected_path, chesapeake_bay=(dataset_type == 'chesapeake_bay_lc'))
+                save_raster_preview_as_png(
+                    reprojected_path, 
+                    chesapeake_bay=(dataset_type == 'chesapeake_bay_lc'), 
+                    chesapeake_cvpr=('chesapeake_bay_swin' in dataset_type), 
+                    open_earth_map=('open_earth_map_unet' in dataset_type)
+                )
 
 
 if __name__ == '__main__':
@@ -84,8 +99,8 @@ if __name__ == '__main__':
     parser.add_argument('--spatial_res', type=float, default=None,
                         help='Spatial resolution of output raster. If None, then use original resolution of each raster.')
     parser.add_argument('--place_name', type=str, help='Name of place (castaic lake, colorado river, etc...)',
-                        choices=['castaic_lake', 'colorado_river', 'big_bear_lake', 
-                                 'duck', 'kentucky_river', 'clinton', 
+                        choices=['castaic_lake', 'colorado_river', 'big_bear_lake',
+                                 'duck', 'kentucky_river', 'clinton',
                                  'virginia_beach_creeds', 'virginia_beach_false_cape_landing'])
     parser.add_argument('--data_path', type=str, default='/data/microsoft_planetary_computer/',
                         help='Path to base data folder, i.e /data/microsoft_planetary_computer')
