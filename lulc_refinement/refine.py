@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', type=str, default='.', help='Output directory for CRF inference results')
 
     # Unary label source
-    # TODO: add chesapeake bay-trained network as source
+    # TODO: add chesapeake bay-trained and open earth map network as source
     parser.add_argument('--unary_src', type=str, help='Source of unary label', choices=['dynamicworld'])
 
     # Features to use for CRF
@@ -78,6 +78,7 @@ if __name__ == '__main__':
 
     estimated_labels, _ = dense_crf(unary_probabilities, feature_img, **crf_params)
 
+    # TODO: Only do this if ground truth is available
     gt_label = data_dict['ground_truth'].squeeze()
 
     # Visualization
@@ -96,9 +97,12 @@ if __name__ == '__main__':
     cv2.imwrite(os.path.join(args.output_dir, 'refined_labels.png'),
                 cv2.cvtColor(colorized_estimated_labels, cv2.COLOR_RGB2BGR))
 
+    
     # Save refined labels to geotiff based on unary label's geotiff metadata. This is because we reshape all data to match the unary label's shape.
+    # TODO: Remove dependence on converted labels.
     unary_raster_path = os.path.join(args.base_dir, args.epsg, args.dataset,
                                      'dynamicworld', args.resolution, 'converted_mosaic.tiff')
+    # TODO: Update CRF refinement save path to unary_src_folder/refined_labels.tiff
     label_to_geotiff(
         estimated_labels,
         unary_raster_path,

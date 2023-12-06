@@ -59,7 +59,7 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
             epsg: epsg code for data, i.e. epsg-XXXXX
             dataset: dataset name
             resolution: resolution of data
-            unary_src: source of unary label (dynamic world, chesapeake bay-trained network)
+            unary_src: source of unary label (dynamic world, chesapeake bay-trained network, open earth map)
             feature_set: list of features (naip, planet, dem_1m, dem, dsm) to use for CRF
         ## Returns:
             data_dict: dictionary of data to be used for CRF inference
@@ -71,6 +71,7 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
     chesapeake_bay_lulc_path = os.path.join(
         base_dir, epsg, dataset, 'chesapeake_bay_lc', resolution, 'converted_mosaic.tiff')
 
+    # TODO: Remove force usage of converted dynamic world labels
     # Unary label (probability) path
     dynamicworld_label_path = os.path.join(base_dir, epsg, dataset, 'dynamicworld', resolution, 'converted_mosaic.tiff')
 
@@ -102,7 +103,7 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
             data_dict['unary'] = dynamicworld_label.read()
             logging.info('dynamicworld nodata value: {}'.format(dynamicworld_label.nodata))
 
-    # TODO: Add unary src for chesapeake bay-trained network
+    # TODO: Add unary src for chesapeake bay-trained network and open earth map
 
     # Image (features)
     for feature_name in feature_path_dict:
@@ -114,6 +115,7 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
         else:
             logging.warning('Feature "{}" not found at path {}'.format(feature_name, feature_path))
 
+    # TODO: make assertion more general for all unary sources
     assert 'unary' in data_dict, 'Unary label not found; check path {} and unary src {}'.format(
         dynamicworld_label_path, unary_src)
     # Rasters may have been off by 1 pixel in shape so make them the same as unary label

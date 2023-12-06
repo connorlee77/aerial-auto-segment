@@ -51,8 +51,8 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
         'open_earth_map_unet_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
         'chesapeake_bay_swin_crossentropy_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
         'chesapeake_bay_swin_crossentropy_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
-        'chesapeake_bay_swin_focalloss_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
-        'chesapeake_bay_swin_focalloss_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
+        # 'chesapeake_bay_swin_focalloss_lc_naip': dict(interpolation=rasterio.enums.Resampling.nearest),
+        # 'chesapeake_bay_swin_focalloss_lc_planet': dict(interpolation=rasterio.enums.Resampling.nearest),
     }
 
     # Read label raster data (dynamic world labels)
@@ -62,6 +62,17 @@ def reproject_resample_rasters(spatial_res, output_folder, place_name, data_path
         target_polygon = shapely.geometry.box(*dw_labels.bounds)
         target_crs = dw_labels.crs
         epsg_code = target_crs.to_epsg()
+
+    for dataset_type, obj in dataset_type_dict.items():
+        original_path = os.path.join(
+            data_path, dataset_type, place_name, 'mosaic', 'mosaic.tiff')
+        if os.path.exists(original_path):
+            with rasterio.open(original_path, 'r') as src:
+                target_crs_bounds = rasterio.warp.transform_bounds(src.crs, target_crs, *src.bounds)
+                polygon = shapely.geometry.box(*target_crs_bounds)
+                target_polygon = shapely.intersection(target_polygon, polygon)
+
+    # target_polygon = target_polygon.buffer(-15, join_style=2)
 
     for dataset_type, obj in dataset_type_dict.items():
 

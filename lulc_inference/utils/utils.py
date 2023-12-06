@@ -5,8 +5,6 @@ import numpy as np
 import rasterio
 import torch
 import tqdm
-import psutil
-import dask.array as da
 warnings.filterwarnings("ignore")
 
 
@@ -69,13 +67,13 @@ def label2rgb(a, dataset="open-earth-map"):
             out[a == v, 0] = oem_class_rgb[k][0]
             out[a == v, 1] = oem_class_rgb[k][1]
             out[a == v, 2] = oem_class_rgb[k][2]
-    elif dataset == "chesapeake-bay":
+    elif "chesapeake-bay" in dataset:
         out = np.zeros(shape=a.shape + (3,), dtype="uint8")
         for k, v in cb_class_gray.items():
             out[a == v, 0] = cb_class_rgb[k][0]
             out[a == v, 1] = cb_class_rgb[k][1]
             out[a == v, 2] = cb_class_rgb[k][2]
-    
+
     return out
 
 
@@ -94,7 +92,7 @@ def change_brightness(img, value=30):
     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
     return img
 
-def tiled_inference(network, img, n_classes, patch_size=2048, stride=1024):
+def tiled_inference(network, img, n_classes, patch_size=2048, stride=1024, tensorflow=False):
     '''
         Performs tiled inference on the input image.
 
@@ -116,8 +114,8 @@ def tiled_inference(network, img, n_classes, patch_size=2048, stride=1024):
                 The predicted probability.
     '''
 
-    if img.shape[2] > 3:
-        img = img[:, :, 0:3]
+    # if img.shape[2] > 3:
+    #     img = img[:, :, 0:3]
     height, width, bands = img.shape
 
     C = int(np.ceil((width - patch_size) / stride) + 1)
@@ -135,15 +133,13 @@ def tiled_inference(network, img, n_classes, patch_size=2048, stride=1024):
     B4 = np.flip(B3)
     B = B1 * B2 * B3 * B4
 
-    # B_data = B1 * B2 * B3 * B4
-    # B = da.from_array(B_data, chunks=(2048, 2048))
-
-    padded_img = np.zeros((patch_size + stride * (R - 1), patch_size + stride * (C - 1), 3), dtype=np.uint8)
+    # not all the bands are uint8
+    padded_img = np.zeros((patch_size + stride * (R - 1), patch_size + stride * (C - 1), bands), dtype=np.uint16)
     ph, pw, pc = padded_img.shape
     padded_img[0:height, 0:width, :] = img
     padded_img[height:, :, :] = cv2.flip(padded_img[height - (ph - height):height, :, :], 0)
     padded_img[:, width:, :] = cv2.flip(padded_img[:, width - (pw - width):width, :], 1)
-
+    
     # cv2.imwrite('padded_img.png', cv2.cvtColor(padded_img.astype(np.uint8), cv2.COLOR_RGB2BGR))
     # print('saved...')
     weight = np.zeros((patch_size + stride * (R - 1), patch_size + stride * (C - 1)), dtype=np.float32)
@@ -154,30 +150,35 @@ def tiled_inference(network, img, n_classes, patch_size=2048, stride=1024):
         for r in range(R):
             for c in range(C):
                 img_tile = padded_img[r * stride:r * stride + patch_size, c *
-                                    stride:c * stride + patch_size, :].astype(np.float32) / 255
+                                    stride:c * stride + patch_size, :].astype(np.float32)
                 
-                # img_tile = padded_img[r * stride:r * stride + patch_size, c *
-                #                     stride:c * stride + patch_size, :]
-                # img_tile = change_brightness(img_tile, value=80)
-                # img_tile = img_tile.astype(np.float32) / 255
-
+                if bands == 3:
+                    img_tile /= 255
+                elif bands == 4: 
+                    img_tile[:, :, 0:3] /= 255
+                    img_tile[:, :, 3] /= 255 # planet imagery is scaled by 10000 (probably?)
+                
                 # Create batch of augmented images for TTA.
                 imgs = []
                 imgs.append(img_tile.copy())
                 imgs.append(img_tile[:, ::-1, :].copy())
                 imgs.append(img_tile[::-1, :, :].copy())
                 imgs.append(img_tile[::-1, ::-1, :].copy())
-
-                input = torch.cat([torch.from_numpy(x).permute(2, 0, 1).unsqueeze(0)
-                                for x in imgs], dim=0).float().to(network.device)
-
-                with torch.no_grad():
+                if tensorflow:
+                    input = np.stack(imgs, axis=0).transpose(0, 3, 1, 2)
                     mask = network(input)
-                    mask = torch.softmax(mask, dim=1)
-                    mask = mask.cpu().numpy()
-
-                    # Recombining test time augmentations via average.
                     pred = (mask[0, :, :, :] + mask[1, :, :, ::-1] + mask[2, :, ::-1, :] + mask[3, :, ::-1, ::-1]) / 4
+                else:
+                    input = torch.cat([torch.from_numpy(x).permute(2, 0, 1).unsqueeze(0)
+                                    for x in imgs], dim=0).float().to(network.device)
+
+                    with torch.no_grad():
+                        mask = network(input)
+                        mask = torch.softmax(mask, dim=1)
+                        mask = mask.cpu().numpy()
+
+                        # Recombining test time augmentations via average.
+                        pred = (mask[0, :, :, :] + mask[1, :, :, ::-1] + mask[2, :, ::-1, :] + mask[3, :, ::-1, ::-1]) / 4
 
                 pred_prob[0:n_classes, r * stride:r * stride + patch_size, c * stride:c * stride + patch_size] += pred * B
                 weight[r * stride:r * stride + patch_size, c * stride:c * stride + patch_size] += B

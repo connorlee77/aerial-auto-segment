@@ -193,7 +193,8 @@ def mask_raster_by_shapely(input_filepath, output_filepath, polygon):
                          "height": out_image.shape[1],
                          "width": out_image.shape[2],
                          "transform": out_transform})
-
+        print('Masked shape: ', out_image.shape)
+        print()
         with rasterio.open(output_filepath, "w", **out_meta) as dst:
             dst.write(out_image)
 
@@ -218,6 +219,8 @@ def reproject_raster_v2(input_filepath, output_filepath, dst_crs, spatial_res, i
         transform, width, height = calculate_default_transform(
             src.crs, dst_crs, src.width, src.height, *src.bounds, resolution=spatial_res)
         kwargs = src.meta.copy()
+        print(input_filepath)
+        print(width, height)
         kwargs.update({
             'crs': dst_crs,
             'transform': transform,

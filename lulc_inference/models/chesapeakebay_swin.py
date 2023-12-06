@@ -10,13 +10,15 @@ from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 
 class ChesapeakeBaySwinNetwork(nn.Module):
 
-    def __init__(self, device, weights_path, img_size=512):
+    def __init__(self, device, weights_path, img_size=512, in_channels=3, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
         super(ChesapeakeBaySwinNetwork, self).__init__()
 
+        self.mean = mean
+        self.std = std
         self.device = device
 
         # Hardcode everything
-        self.network = SwinSegmentationModel(img_size=img_size, in_channels=3)
+        self.network = SwinSegmentationModel(img_size=img_size, in_channels=in_channels)
         weights = torch.load(weights_path, map_location='cpu')
 
         remove = []
@@ -34,13 +36,17 @@ class ChesapeakeBaySwinNetwork(nn.Module):
     def normalize_img_input(self, x):
 
         # imagenet
-        x[:, 0] -= 0.485
-        x[:, 1] -= 0.456
-        x[:, 2] -= 0.406
+        x[:, 0] -= self.mean[0]
+        x[:, 1] -= self.mean[1]
+        x[:, 2] -= self.mean[2]
 
-        x[:, 0] /= 0.229
-        x[:, 1] /= 0.224
-        x[:, 2] /= 0.225
+        x[:, 0] /= self.std[0]
+        x[:, 1] /= self.std[1]
+        x[:, 2] /= self.std[2]
+
+        if len(self.mean) > 3 and len(self.std) > 3 and x.shape[1] == 4:
+            x[:, 3] -= self.mean[3]
+            x[:, 3] /= self.std[3]
 
         # kentucky river
         # x[:, 0] -= 0.22637588
@@ -68,10 +74,7 @@ class ChesapeakeBaySwinNetwork(nn.Module):
         # x[:, 0] /= 0.21467787
         # x[:, 1] /= 0.17044979
         # x[:, 2] /= 0.12658856
-
-
-
-        return x[:,:3,:,:]
+        return x
 
     def forward(self, x):
         x = self.normalize_img_input(x)

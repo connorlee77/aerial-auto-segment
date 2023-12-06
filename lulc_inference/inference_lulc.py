@@ -23,17 +23,32 @@ if __name__ == "__main__":
     parser.add_argument("--n_classes", type=int, default=8, help="number of classes")
     parser.add_argument("--device", type=str, default="0", help="gpu id")
     parser.add_argument("--network", type=str, default="open-earth-map",
-                        help="type of pretrained network to use", choices=["open-earth-map", "chesapeake-bay"])
+                        help="type of pretrained network to use", choices=["open-earth-map", "chesapeake-bay", 'chesapeake-bay-segformer'])
+
+    # chesapeake-bay network specific arguments
+    parser.add_argument("--in_channels", type=int, default=3, help="number of input channels")
+    parser.add_argument("--mean", type=float, nargs="+", default=[0.485, 0.456, 0.406],
+                        help="mean of the dataset")
+    parser.add_argument("--std", type=float, nargs="+", default=[0.229, 0.224, 0.225],
+                        help="std of the dataset")
+
     parser.add_argument("--weights_path", type=str, default="weights/chesapeake_bay_swinformer.pth",
                         help="path to pretrained weights")
     args = parser.parse_args()
-
+    print(args)
     device = torch.device('cuda:{}'.format(args.device)) if torch.cuda.is_available() else "cpu"
+    use_tensorflow = False
     if args.network == "chesapeake-bay":
-        network = ChesapeakeBaySwinNetwork(device, args.weights_path, args.patch_size)
+        network = ChesapeakeBaySwinNetwork(device, args.weights_path, args.patch_size,
+                                           args.in_channels, args.mean, args.std)
     elif args.network == "open-earth-map":
         print('Pretrained weights path is fixed to pretrained_weights/u-efficientnet-b4_s0_CELoss_pretrained.pth')
-        network = OpenEarthMapNetwork(device, weights_path='pretrained_weights/u-efficientnet-b4_s0_CELoss_pretrained.pth')
+        network = OpenEarthMapNetwork(
+            device, weights_path='pretrained_weights/u-efficientnet-b4_s0_CELoss_pretrained.pth')
+    elif args.network == "chesapeake-bay-segformer":
+        from models.chesapeakebay_segformer import ChesapeakeBaySegformer
+        network = ChesapeakeBaySegformer()
+        use_tensorflow = True
 
     img, crs, trans = None, None, None
     with rasterio.open(args.input_path, "r") as src:
@@ -43,7 +58,7 @@ if __name__ == "__main__":
 
     H, W, C = img.shape
     pred_prob = tiled_inference(network, img, args.n_classes,
-                                            patch_size=args.patch_size, stride=args.stride)
+                                patch_size=args.patch_size, stride=args.stride, tensorflow=use_tensorflow)
     assert pred_prob.shape == (args.n_classes + 1, H, W)
 
     print('Done tiling')
@@ -55,7 +70,7 @@ if __name__ == "__main__":
 
     # save png image
     pr_rgb = label2rgb(pred_prob[-1, :, :], dataset=args.network)
-    resize_rgb = cv2.resize(pr_rgb, (0,0), fx=1, fy=1, interpolation=cv2.INTER_NEAREST)
+    resize_rgb = cv2.resize(pr_rgb, (0, 0), fx=1, fy=1, interpolation=cv2.INTER_NEAREST)
     Image.fromarray(resize_rgb).save(preview_path)
     print('Done saving rgb')
     # save rgb geotiff
