@@ -20,7 +20,7 @@ echo theta_alpha_z: $ALPHA_Z
 echo theta_gamma_z: $GAMMA_Z
 echo
 # Parameters that shouldn't change for chesapeake bay datasets
-BASE_DIR=/media/hdd2/data/chesapeake_bay_lulc/outputs/preprocessed
+BASE_DIR=/data/chesapeake_bay_lulc/outputs/preprocessed
 RESOLUTION=1.0
 UNARY_SRC=dynamicworld
 
@@ -30,7 +30,7 @@ DATASETS=('virginia_beach_creeds' 'clinton' 'virginia_beach_false_cape_landing')
 for DATASET in "${DATASETS[@]}"
 do  
     echo Running refinement for dataset: $DATASET
-    python refine.py \
+    echo python refine.py \
     --base_dir $BASE_DIR \
     --epsg $EPSG \
     --dataset $DATASET \

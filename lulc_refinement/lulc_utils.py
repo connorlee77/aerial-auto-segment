@@ -8,6 +8,8 @@ import rasterio
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 feature_set_3D = set(['dem_1m', 'dem', 'dsm', 'surface_height'])
+
+
 def check_using_3D_features(feature_set):
     for feature_name in feature_set:
         if feature_name in feature_set_3D:
@@ -17,6 +19,8 @@ def check_using_3D_features(feature_set):
 ####################################################################################################
 # Helper functions for data I/O ###
 ####################################################################################################
+
+
 def force_same_shape(data_dict):
     '''
         Force all geotiff data in the dictionary to have the same shape as the unary label
@@ -50,7 +54,7 @@ def force_same_shape(data_dict):
         data_dict[key] = data.reshape(H0, W0, C)
 
 
-def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, feature_set):
+def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, feature_set, unary_filename='converted_mosaic.tiff'):
     '''
         Read and preprocess geotiffs into np.array data for CRF refinement.
 
@@ -69,11 +73,9 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
 
     # Ground truth label path
     chesapeake_bay_lulc_path = os.path.join(
-        base_dir, epsg, dataset, 'chesapeake_bay_lc', resolution, 'converted_mosaic.tiff')
-
-    # TODO: Remove force usage of converted dynamic world labels
+        base_dir, epsg, dataset, 'chesapeake_bay_lc', resolution, unary_filename)
     # Unary label (probability) path
-    dynamicworld_label_path = os.path.join(base_dir, epsg, dataset, 'dynamicworld', resolution, 'converted_mosaic.tiff')
+    unary_label_path = os.path.join(base_dir, epsg, dataset, unary_src, resolution, unary_filename)
 
     # Input image (features) paths
     naip_path = os.path.join(base_dir, epsg, dataset, 'naip', resolution, 'mosaic.tiff')
@@ -98,12 +100,12 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
             data_dict['ground_truth'] = chesapeake_bay_lc_label.read()
             logging.info('chesapeake_bay_lc nodata value: {}'.format(chesapeake_bay_lc_label.nodata))
 
-    if os.path.exists(dynamicworld_label_path) and unary_src == 'dynamicworld':
-        with rasterio.open(dynamicworld_label_path) as dynamicworld_label:
-            data_dict['unary'] = dynamicworld_label.read()
-            logging.info('dynamicworld nodata value: {}'.format(dynamicworld_label.nodata))
-
-    # TODO: Add unary src for chesapeake bay-trained network and open earth map
+    if os.path.exists(unary_label_path):
+        with rasterio.open(unary_label_path) as unary:
+            data_dict['unary'] = unary.read()
+            logging.info('Unary nodata value: {}'.format(unary.nodata))
+    else:
+        raise Exception('Unary label not found at path {} for unary source {}'.format(unary_label_path, unary_src))
 
     # Image (features)
     for feature_name in feature_path_dict:
@@ -115,9 +117,6 @@ def read_and_preprocess_data(base_dir, epsg, dataset, resolution, unary_src, fea
         else:
             logging.warning('Feature "{}" not found at path {}'.format(feature_name, feature_path))
 
-    # TODO: make assertion more general for all unary sources
-    assert 'unary' in data_dict, 'Unary label not found; check path {} and unary src {}'.format(
-        dynamicworld_label_path, unary_src)
     # Rasters may have been off by 1 pixel in shape so make them the same as unary label
     force_same_shape(data_dict)
 
@@ -142,7 +141,6 @@ def create_input_features(data_dict, feature_set):
 
     feature_img_list = []
     if 'naip' in feature_set:  # 1m resolution
-        # TODO: add naip-derived features like NDVI, NDWI, etc.
         feature_img_list.append(data_dict['naip'][:, :, :-1])
 
     if 'naip-nir' in feature_set:  # 1m resolution
@@ -154,7 +152,7 @@ def create_input_features(data_dict, feature_set):
 
     if 'planet' in feature_set:  # 3m resolution
         feature_img_list.append(data_dict['planet'])
-    
+
     if 'dem_1m' in feature_set:  # 1m resolution
         feature_img_list.append(preprocess_dxm(data_dict['dem_1m']))
     elif 'dem' in feature_set:  # 10m resolution
@@ -205,6 +203,8 @@ def label_to_geotiff(label, unary_geotiff_path, output_geotiff_path):
 ####################################################################################################
 # Helper functions for preprocessing data ###
 ####################################################################################################
+
+
 def compute_ndvi(naip_img):
     '''
         Compute NDVI from NAIP image
@@ -254,5 +254,3 @@ def compute_surface_height(dsm_img, dem_img):
     diff = dsm_img - dem_img
     diff = np.clip(diff, 0, np.percentile(diff, 99.9))
     return diff
-
-

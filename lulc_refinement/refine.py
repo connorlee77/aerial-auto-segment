@@ -9,10 +9,14 @@ import os
 import cv2
 import numpy as np
 import pydensecrf.densecrf as dcrf
-from dense_crf import dense_crf
-from lulc_utils import (create_input_features, label_to_geotiff,
-                        read_and_preprocess_data, check_using_3D_features)
-from utils.draw import colorize_common_landcover_label
+from dense_crf import dense_crf, tiled_dense_crf
+from lulc_utils import (check_using_3D_features, create_input_features,
+                        label_to_geotiff, read_and_preprocess_data)
+
+from utils.draw import (colorize_chesapeake_cvpr_landcover_label,
+                        colorize_common_landcover_label,
+                        colorize_dynamic_world_label,
+                        colorize_open_earth_map_landcover_label)
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
@@ -24,13 +28,14 @@ if __name__ == '__main__':
     parser.add_argument('--epsg', type=str, help='EPSG code for data, i.e "epsg-32618"')
     parser.add_argument('--dataset', type=str, help='Dataset name')
     parser.add_argument('--resolution', type=str, help='Resolution of data',
-                        choices=['0.6', '1.0', '2.0', 'original_resolution'])
+                        choices=['0.6', '1.0', '2.0', '3.0', '5.0', '10.0'])
 
-    parser.add_argument('--output_dir', type=str, default='.', help='Output directory for CRF inference results')
+    parser.add_argument('--output_dir', type=str, default=None, help='Output directory for CRF inference results')
 
     # Unary label source
-    # TODO: add chesapeake bay-trained and open earth map network as source
-    parser.add_argument('--unary_src', type=str, help='Source of unary label', choices=['dynamicworld'])
+    parser.add_argument('--unary_src', type=str,
+                        help='Source of unary label. Should be a valid folder name containing the unary filename')
+    parser.add_argument('--unary_filename', type=str, help='Filename of unary label', default='converted_mosaic.tiff')
 
     # Features to use for CRF
     parser.add_argument('--feature_set', nargs='+', help='List of features to use (at least one is required)',
@@ -53,9 +58,9 @@ if __name__ == '__main__':
     print(args)
 
     data_dict = read_and_preprocess_data(args.base_dir, args.epsg, args.dataset,
-                                         args.resolution, args.unary_src, args.feature_set)
+                                         args.resolution, args.unary_src, args.feature_set, args.unary_filename)
     feature_img = create_input_features(data_dict, args.feature_set)
-    unary_probabilities = data_dict['unary'][:, :, :-1]
+    unary_probabilities = data_dict['unary'][:,:,:-1]
 
     theta_alpha_z, theta_gamma_z = None, None
     if args.use_3d:
@@ -75,36 +80,43 @@ if __name__ == '__main__':
         normalization=dcrf.NORMALIZE_SYMMETRIC,
         inference_steps=args.inference_steps,
     )
-
-    estimated_labels, _ = dense_crf(unary_probabilities, feature_img, **crf_params)
-
-    # TODO: Only do this if ground truth is available
-    gt_label = data_dict['ground_truth'].squeeze()
-
-    # Visualization
-    colorized_unary_labels = colorize_common_landcover_label(data_dict['unary'][:, :, -1])
-    colorized_estimated_labels = colorize_common_landcover_label(estimated_labels)
-    colorized_gt_label = colorize_common_landcover_label(gt_label)
-
-    overlay = cv2.addWeighted(data_dict['naip'][:, :, :-1], 0.6, colorized_estimated_labels, 0.4, 0)
-    sxs1 = np.hstack([overlay, colorized_unary_labels])
-    sxs2 = np.hstack([colorized_estimated_labels, colorized_gt_label])
-    sxs = np.vstack([sxs1, sxs2])
-    sxs = cv2.resize(sxs, (0, 0), fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
-
-    os.makedirs(args.output_dir, exist_ok=True)
-    cv2.imwrite(os.path.join(args.output_dir, 'sxs.png'), cv2.cvtColor(sxs, cv2.COLOR_RGB2BGR))
-    cv2.imwrite(os.path.join(args.output_dir, 'refined_labels.png'),
-                cv2.cvtColor(colorized_estimated_labels, cv2.COLOR_RGB2BGR))
-
     
-    # Save refined labels to geotiff based on unary label's geotiff metadata. This is because we reshape all data to match the unary label's shape.
-    # TODO: Remove dependence on converted labels.
+    H, W, C = unary_probabilities.shape
+    if H > 8192 or W > 8192:
+        logging.info('Running CRF inference in tiles')
+        estimated_labels, _ = tiled_dense_crf(unary_probabilities, feature_img, patch_size=8192, stride=8000, **crf_params)
+    else:
+        estimated_labels, _ = dense_crf(unary_probabilities, feature_img, **crf_params)
+    print(estimated_labels.shape)
     unary_raster_path = os.path.join(args.base_dir, args.epsg, args.dataset,
-                                     'dynamicworld', args.resolution, 'converted_mosaic.tiff')
-    # TODO: Update CRF refinement save path to unary_src_folder/refined_labels.tiff
-    label_to_geotiff(
-        estimated_labels,
-        unary_raster_path,
-        os.path.join(args.output_dir, 'refined_labels.tiff'),
-    )
+                                     args.unary_src, args.resolution, args.unary_filename)
+    if args.output_dir is None:
+        args.output_dir = os.path.join(args.base_dir, args.epsg, args.dataset,
+                                       args.unary_src, args.resolution, 'crf_' + '_'.join(args.feature_set))
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    output_path = os.path.join(args.output_dir, 'mosaic.tiff')
+    label_to_geotiff(estimated_labels, unary_raster_path, output_path)
+
+    if 'ground_truth' in data_dict:
+        gt_label = data_dict['ground_truth'].squeeze()
+        colorized_gt_label = colorize_common_landcover_label(gt_label)
+        cv2.imwrite(os.path.join(args.output_dir, 'gt.png'), cv2.cvtColor(colorized_gt_label, cv2.COLOR_RGB2BGR))
+
+    color_fn = None
+    if 'chesapeake_bay' in args.unary_src:
+        color_fn = colorize_chesapeake_cvpr_landcover_label
+    elif 'open_earth_map' in args.unary_src:
+        color_fn = colorize_open_earth_map_landcover_label
+    elif args.unary_filename == 'converted_mosaic.tiff':
+        color_fn = colorize_common_landcover_label
+    else:
+        color_fn = colorize_dynamic_world_label
+
+    colorized_estimated_labels = color_fn(estimated_labels)
+    overlay = cv2.addWeighted(data_dict['naip'][:,:,:-1], 0.6, colorized_estimated_labels, 0.4, 0)
+
+    cv2.imwrite(os.path.join(args.output_dir, 'mosaic_preview_overlay.png'),
+                cv2.cvtColor(np.uint8(overlay), cv2.COLOR_RGB2BGR))
+    cv2.imwrite(os.path.join(args.output_dir, 'mosaic_preview.png'),
+                cv2.cvtColor(colorized_estimated_labels, cv2.COLOR_RGB2BGR))
