@@ -290,7 +290,7 @@ def draw_overlay_and_labels(img, points, labels, color_map=None, alpha=0.5):
         # print(points[i], labels[i])
         xi, yi = points[i]
         cls = labels[i]
-        if not np.isnan(cls):
+        if not np.isnan(cls) and cls >= 0:
             color = color_map[cls]
             cv2.circle(img_with_pts, (xi, yi), radius=1,
                        color=color, thickness=-1)

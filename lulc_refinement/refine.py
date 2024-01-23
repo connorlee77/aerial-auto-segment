@@ -11,7 +11,8 @@ import numpy as np
 import pydensecrf.densecrf as dcrf
 from dense_crf import dense_crf, tiled_dense_crf
 from lulc_utils import (check_using_3D_features, create_input_features,
-                        label_to_geotiff, read_and_preprocess_data)
+                        label_and_probability_to_geotiff, label_to_geotiff,
+                        read_and_preprocess_data)
 
 from utils.draw import (colorize_chesapeake_cvpr_landcover_label,
                         colorize_common_landcover_label,
@@ -84,10 +85,10 @@ if __name__ == '__main__':
     H, W, C = unary_probabilities.shape
     if H > 8192 or W > 8192:
         logging.info('Running CRF inference in tiles')
-        estimated_labels, _ = tiled_dense_crf(unary_probabilities, feature_img, patch_size=8192, stride=8000, **crf_params)
+        estimated_labels, estimated_prob = tiled_dense_crf(unary_probabilities, feature_img, patch_size=8192, stride=8000, **crf_params)
     else:
-        estimated_labels, _ = dense_crf(unary_probabilities, feature_img, **crf_params)
-    print(estimated_labels.shape)
+        estimated_labels, estimated_prob = dense_crf(unary_probabilities, feature_img, **crf_params)
+
     unary_raster_path = os.path.join(args.base_dir, args.epsg, args.dataset,
                                      args.unary_src, args.resolution, args.unary_filename)
     if args.output_dir is None:
@@ -96,7 +97,8 @@ if __name__ == '__main__':
     os.makedirs(args.output_dir, exist_ok=True)
 
     output_path = os.path.join(args.output_dir, 'mosaic.tiff')
-    label_to_geotiff(estimated_labels, unary_raster_path, output_path)
+    # label_to_geotiff(estimated_labels, unary_raster_path, output_path)
+    label_and_probability_to_geotiff(estimated_labels, estimated_prob, unary_raster_path, output_path)
 
     if 'ground_truth' in data_dict:
         gt_label = data_dict['ground_truth'].squeeze()

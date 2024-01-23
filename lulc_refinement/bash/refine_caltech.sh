@@ -27,7 +27,7 @@ UNARY_SRCs=('dynamicworld' 'chesapeake_bay_swin_crossentropy_lc_naip_corrected' 
 for RESOLUTION in "${RESOLUTIONs[@]}"; do
     for UNARY_SRC in "${UNARY_SRCs[@]}"; do
         EPSG=epsg-32611
-        DATASETS=('big_bear_lake' 'castaic_lake' 'colorado_river')
+        DATASETS=('castaic_lake' 'colorado_river')
         for DATASET in "${DATASETS[@]}"; do
             echo Running refinement for dataset: $DATASET
             python refine.py \

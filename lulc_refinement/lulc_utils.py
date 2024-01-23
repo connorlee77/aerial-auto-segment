@@ -175,6 +175,35 @@ def create_input_features(data_dict, feature_set):
     logging.info('Input features has shape {}'.format(feature_img.shape))
     return feature_img
 
+def label_and_probability_to_geotiff(label, probability, unary_geotiff_path, output_geotiff_path):
+    '''
+        Saves a np.array label to geotiff
+
+        ## Parameters:
+            label: np.array, (H, W)
+            probability: np.array, (C, H, W)
+            unary_geotiff_path: path to unary geotiff
+            output_geotiff_path: path to output geotiff
+        ## Returns:
+            None
+    '''
+
+    
+    assert probability.shape[1:] == label.shape, 'probability shape {} does not match label shape {}'.format(probability.shape, label.shape)
+    assert len(label.shape) == 2, 'label must be 2D, receieved shape {}'.format(label.shape)
+    
+    bands = probability.shape[0] + 1
+    data = np.concatenate([probability, label[np.newaxis, :, :]], axis=0)
+    with rasterio.open(unary_geotiff_path, 'r') as src:
+        profile = src.profile
+        profile.update(
+            count=bands,
+            dtype=rasterio.float32,
+            nodata=-9999,
+        )
+
+        with rasterio.open(output_geotiff_path, 'w', **profile) as dst:
+            dst.write(data.astype(rasterio.float32))
 
 def label_to_geotiff(label, unary_geotiff_path, output_geotiff_path):
     '''

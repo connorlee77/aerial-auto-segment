@@ -69,21 +69,14 @@ def world_to_camera_coords(q_xyzw, world_pts):
     return Xr
 
 def create_world_grid(yaw, x_mag=8000, y_mag=3000, Nx=200, Ny=200, exp_x=5, exp_y=5):
-
-        x_mag = 8000
         
         x_unit_vec = np.array([-np.cos(yaw + np.pi/2), np.sin(yaw + np.pi/2)])
 
         # Faces right
         y_unit_vec = np.array([-np.cos(yaw+np.pi), np.sin(yaw+np.pi)])
-        right_vec = y_unit_vec*y_mag
 
         x_space = power_spacing(Nx, 0, x_mag, exp_x)
-        y_space_left = power_spacing(Ny // 2, 0.1, y_mag, exp_y)[::-1]
-        y_space_right = power_spacing(Ny // 2, 0.1, y_mag, exp_y)
-
         x_magnitudes = x_space
-        # y_magnitudes = np.concatenate((-y_space_right, y_space_left))
 
         # New stuff
         y_mag_start = 10
