@@ -3,7 +3,7 @@ import numpy as np
 import pyvista as pv
 from PIL import Image
 import time
-import startinpy
+
 def glOrtho(left, right, bottom, top, near, far):
     tx = -(right + left) / (right - left)
     ty = -(top + bottom) / (top - bottom)
