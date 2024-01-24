@@ -342,7 +342,7 @@ if __name__ == '__main__':
         name = os.path.basename(img_path).split('.')[0]
         cv2.imwrite('{}/{}.png'.format(args.output_dir, name), original_img)
         # cv2.imwrite('outputs/{}_autoseg.png'.format(name), masked_img)
-        # cv2.imwrite('outputs/{}_pts.png'.format(name), pts_img)
+        cv2.imwrite('{}/{}_pts.png'.format(args.output_dir, name), pts_img)
 
         original_img = cv2.rotate(undistorted_image, cv2.ROTATE_180)
         t1 = time.time()
@@ -352,7 +352,7 @@ if __name__ == '__main__':
         mgl_mask = get_mask_mgl(labeled_camera_pts.T, corrected_I, colorize_func=colorize_func)
         t2 = time.time()
         print('{:3f} seconds to render mask'.format(t2 - t1))
-        
+
         name = os.path.basename(img_path).split('.')[0]
         # cv2.imwrite('original_output/{}_autoseg_refined.png'.format(name), cv2.cvtColor(refined_mask, cv2.COLOR_RGB2BGR))
         overlay = cv2.addWeighted(original_img, 0.7, mgl_mask, 0.3, 0)
