@@ -34,7 +34,7 @@ crashtest==0.4.1
 croniter==1.3.14
 cryptography==40.0.2
 cycler==0.11.0
-Cython==0.29.35
+Cython==0.29.36
 dateutils==0.6.12
 dbfread==2.0.7
 debugpy==1.6.7
@@ -58,7 +58,7 @@ geojson==3.0.1
 gitdb==4.0.10
 GitPython==3.1.31
 glcontext==2.5.0
-gmpy2==2.1.2
+gmpy2
 google-api-core==2.11.1
 google-api-python-client==2.100.0
 google-auth==2.23.0
@@ -154,7 +154,6 @@ pyasn1-modules==0.3.0
 pycocotools==2.0.6
 pycparser==2.21
 pydantic==1.10.7
-pydensecrf==1.0rc2
 Pygments==2.15.1
 PyJWT==2.7.0
 pyOpenSSL==23.1.1
@@ -181,7 +180,7 @@ qudida==0.0.4
 rapidfuzz==2.15.1
 rasterio==1.3.7
 ray==2.7.1
-readchar==4.0.5.dev0
+readchar
 requests==2.29.0
 requests-toolbelt==0.10.1
 rich==13.3.5
@@ -206,7 +205,6 @@ SQLAlchemy==2.0.22
 stack-data==0.6.2
 starlette==0.22.0
 starsessions==1.3.0
-startinpy==0.10.1
 sympy==1.12
 tenacity==8.2.3
 tensorboardX==2.6.2.2
