@@ -114,14 +114,19 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
+    # Read the raster containing the class labels. This defaults to the dynamic world labels (10m).
+    # with the option for other refinement types (e.g. CRF).
     if args.refinement_type is None:
         label_raster_path = os.path.join(args.base_path, args.epsg, args.place, args.lulc_type,
                                          args.resolution, 'mosaic.tiff')
     else:
         label_raster_path = os.path.join(args.base_path, args.epsg, args.place, args.lulc_type,
                                          args.resolution, args.refinement_type, 'mosaic.tiff')
+    # Read the raster containing the digital surface map for 3D information
     dsm_path = os.path.join(args.base_path, args.epsg, args.place, args.d3_type, args.resolution, 'mosaic.tiff')
 
+    # Our data is in NED coordinates, so we need to subtract the baseline elevation to get the correct height.
+    # This is in meters.
     if args.place == 'castaic_lake':
         baseline_elevation = 428.54
     elif args.place == 'colorado_river':
@@ -140,6 +145,7 @@ if __name__ == '__main__':
     ##########################################################################
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Get colorize function
     if args.lulc_type == 'dynamicworld':
         colorize_func = colorize_dynamic_world_label
     elif 'chesapeake' in args.lulc_type:
@@ -185,6 +191,8 @@ if __name__ == '__main__':
     label_tiff_data = rasterio.open(label_raster_path)
     dsm = rasterio.open(dsm_path)
 
+    # Create interpolators for the label and dsm rasters.
+    # NOTE: I don't think this is actually necessary, and may actually slow things down for 1m label rasters. 
     if os.path.exists('dw_interp.pkl') and os.path.exists('dsm_interp.pkl'):
         with open('dw_interp.pkl', 'rb') as f:
             label_interp = pickle.load(f)
@@ -217,6 +225,7 @@ if __name__ == '__main__':
     t1 = time.time()
     print('{:3f} seconds to read rasters'.format(t1 - t0))
 
+    # EPSG:4326 is lat/lng, which is what the drone GPS records in. Convert to UTM.
     crs = label_tiff_data.crs
     tform = pyproj.Transformer.from_crs("epsg:4326", "epsg:{}".format(crs.to_epsg()))
 
@@ -228,7 +237,7 @@ if __name__ == '__main__':
     # Begin segmentation projection here
     ##########################################################################
     print('Starting segmentation estimation')
-    image_paths = sorted(glob.glob(os.path.join(args.data_path, 'images/thermal/*')))[2000::1000]
+    image_paths = sorted(glob.glob(os.path.join(args.data_path, 'images/thermal/*')))[2000::1000] # NOTE: skipping stuff to speed up.
     for t, img_path in tqdm.tqdm(enumerate(image_paths), total=len(image_paths)):
 
         image_data = alignment_data[alignment_data['image'] == "images/thermal/{}".format(os.path.basename(img_path))]
@@ -255,7 +264,7 @@ if __name__ == '__main__':
             continue
 
         img = cv2.imread(img_path, -1)
-        img = thermal2rgb(img)
+        img = thermal2rgb(img) # Just stacks the thermal image into 3 channels.
         undistorted_image = cv2.undistort(img, I, D, None, newcameramtx)
 
         print("Distance to ground plane: {}".format(dist_to_ground_plane))
@@ -264,23 +273,25 @@ if __name__ == '__main__':
         r = Rotation.from_quat(cam_xyzw)
         yaw, pitch, roll = r.as_euler('ZYX', degrees=False)
 
+        # Discretization of the world grid
         Nx = 250
         Ny = 100
 
         t1 = time.time()
         x_unit_vec, y_unit_vec, x_magnitudes, y_magnitudes, world_pts, xx, yy = create_world_grid(
             yaw,
-            x_mag=10000,
-            y_mag=8000,
+            x_mag=10000, # Forward
+            y_mag=8000, # side to side
             Nx=Nx,
             Ny=Ny,
-            exp_x=3,
+            exp_x=3, # Stuff compresses in far field, so create grid with less points in far field using exponential steps.
             exp_y=3,
         )
         t2 = time.time()
         print('{:3f} seconds to create world grid'.format(t2 - t1))
 
         t1 = time.time()
+        # Convert lat/lng of drone to UTM
         utm_e, utm_n = tform.transform(coords[0], coords[1])
         rows, cols = rasterio.transform.rowcol(label_tiff_data.transform, xs=utm_e, ys=utm_n)
 
@@ -301,10 +312,12 @@ if __name__ == '__main__':
         print('{:3f} seconds to interpolate'.format(t2 - t1))
 
         t1 = time.time()
+        # Offset elevation map for the correct elevation
         world_coord_z = np.clip(sampled_z.reshape(Nx * Ny, 1) - baseline_elevation, 0, None)
         word_coord_pts = np.concatenate([world_pts.reshape(Nx * Ny, 2), world_coord_z], axis=1)
         n_lulc_classes = sampled_labels.shape[1]
 
+        # Account for NED coordinate frame (x: forward, y: right, z: down)
         world_coord_labels = sampled_labels.reshape(Nx * Ny, n_lulc_classes)
         word_coord_pts[:, 2] = -word_coord_pts[:, 2] - z
 
@@ -312,10 +325,13 @@ if __name__ == '__main__':
         camera_pts = world_to_camera_coords(cam_xyzw, word_coord_pts).T
         labeled_camera_pts = np.concatenate([camera_pts, world_coord_labels[:, -1].reshape(-1, 1)], axis=1)
 
+        # Transform to camera coordinates. Only used to directly project 3d points to image frame.
+        # Not needed for OpenGL/ModernGL projection
         Xn = world2cam(cam_xyzw, new_P, word_coord_pts)
         t2 = time.time()
         print('{:3f} seconds to transform to camera coords'.format(t2 - t1))
 
+        # Project points onto image. Not needed for OpenGL/ModernGL projection
         original_img, masked_img, pts_img = draw_overlay_and_labels(
             undistorted_image,
             points=Xn,
@@ -330,9 +346,13 @@ if __name__ == '__main__':
 
         original_img = cv2.rotate(undistorted_image, cv2.ROTATE_180)
         t1 = time.time()
+
+        # NOTE: This is the OpenGL/ModernGL projection. This is the one we use for the paper.
+        # TODO: This is slow. Can we speed it up by moving the camera around instead of the grid?
         mgl_mask = get_mask_mgl(labeled_camera_pts.T, corrected_I, colorize_func=colorize_func)
         t2 = time.time()
         print('{:3f} seconds to render mask'.format(t2 - t1))
+        
         name = os.path.basename(img_path).split('.')[0]
         # cv2.imwrite('original_output/{}_autoseg_refined.png'.format(name), cv2.cvtColor(refined_mask, cv2.COLOR_RGB2BGR))
         overlay = cv2.addWeighted(original_img, 0.7, mgl_mask, 0.3, 0)
