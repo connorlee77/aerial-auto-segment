@@ -62,7 +62,6 @@ def world_to_camera_coords(q_xyzw, world_pts):
     yaw, pitch, roll =  r.as_euler('ZYX', degrees=True)
     r = Rotation.from_euler('ZYX', [0, pitch, -roll], degrees=True)
     R_mat = r.as_matrix()
-
     X = world_pts[:, 0:3].T
     # Transform points from world coordinates to camera coordinate frame 
     Xr = R_mat @ X

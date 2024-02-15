@@ -3,6 +3,7 @@ import numpy as np
 import pyvista as pv
 from PIL import Image
 import time
+import startinpy
 
 def glOrtho(left, right, bottom, top, near, far):
     tx = -(right + left) / (right - left)
@@ -47,31 +48,34 @@ def get_mask_mgl(pts, I, colorize_func=None):
 
     P_gl = NDC @ K_gl
 
-    xyz = pts[[1, 2, 0], :].T
-    xyz[:, 2] *= -1
-    xyz[:, 0] *= -1
-
     label = pts[3, :].T
     color = colorize_func(label)
 
-    t1 = time.time()
-    cloud = pv.PolyData(xyz)
-    surf = cloud.delaunay_2d()
-    vertices = surf.points
-    faces = surf.faces.reshape(-1, 4)
-    triangles = faces[:, 1:]
+    # PyVista method: slow
+    # xyz = pts[[1, 2, 0], :].T
+    # xyz[:, 2] *= -1
+    # xyz[:, 0] *= -1
+    # cloud = pv.PolyData(xyz)
+    # surf = cloud.delaunay_2d()
+    # vertices = surf.points
+    # faces = surf.faces.reshape(-1, 4)
+    # triangles = faces[:, 1:]
 
-    # dt = startinpy.DT()
-    # dt.insert(xyz, insertionstrategy="BBox")
-    # vertices = dt.points[1:]
-    # faces = dt.triangles
-    # triangles = faces
-    t2 = time.time()
-    print('delaunay time: ', t2 - t1)
+    # startinpy is 10x faster than pyvista for delaunay triangulation
+    dt = startinpy.DT()
+    xyz = pts[[0, 1, 2], :].T
+    dt.insert(xyz, insertionstrategy="BBox")
+    vertices = dt.points[1:]
 
-    vertex_colors = color
-    
-    t1 = time.time()
+    # startinpy returns vertices in (x, y, z) order, but we need (y, z, x) for rendering in our coordinate frame.
+    vertices = vertices[:, [1, 2, 0]]
+    vertices[:,2] *= -1
+    vertices[:,0] *= -1
+
+    # must re-index to 0-based since we threw out the infinite vertex at index 0 of vertices
+    triangles = dt.triangles - 1 
+
+    vertex_colors = color[:len(vertices)]
     with moderngl.create_context(standalone=True, backend='egl') as ctx:
 
         prog = ctx.program(
@@ -131,6 +135,5 @@ def get_mask_mgl(pts, I, colorize_func=None):
 
         vao.render(moderngl.TRIANGLES)
         image = Image.frombytes('RGB', fbo.size, fbo.read(), 'raw', 'RGB', 0, 1)
-    t2 = time.time()
-    print('rendering time: ', t2 - t1)
+
     return np.asarray(image)
