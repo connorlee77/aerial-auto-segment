@@ -9,18 +9,17 @@
 
 
 ## Environment Setup
-### Setup anaconda environment. 
-I recommend miniconda and [mamba](https://mamba.readthedocs.io/en/latest/installation.html) (faster version of anaconda). Once miniconda/mamba is installed, install the conda file using the yaml file provided.
-```
-conda env create -f environment.yml
-```
+### Setup anaconda environment.
+I recommend miniconda and [mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) (faster version of anaconda). Once miniconda/mamba is installed, install the conda file using the yaml file provided.
 
-### Install missing packages via pip
-Install `rasterio`, `pyproj`, `geojson`, etc. 
+```bash
+# Create a new environment (using whatever environment manager you prefer)
+conda create --name autoseg python=3.11.3
+conda activate autoseg
 
-Install `pydensecrf` from source via
-```
-pip install git+https://github.com/lucasb-eyer/pydensecrf.git
+# Install dependencies (using `python -m pip` to guard against using incorrect pip version)
+python -m pip install --requirement requirements.txt
+python -m pip install --no-build-isolation git+https://github.com/lucasb-eyer/pydensecrf.git
 ```
 
 ## Run the code
