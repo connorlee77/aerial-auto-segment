@@ -45,11 +45,7 @@ def get_mask_mgl(pts, I, colorize_func=None):
         [0, 0, -1, 0],
     ], dtype='f4')
     NDC = glOrtho(0, cols, rows, 0, near, far)
-
     P_gl = NDC @ K_gl
-
-    label = pts[3, :].T
-    color = colorize_func(label)
 
     # PyVista method: slow
     # xyz = pts[[1, 2, 0], :].T
@@ -75,7 +71,15 @@ def get_mask_mgl(pts, I, colorize_func=None):
     # must re-index to 0-based since we threw out the infinite vertex at index 0 of vertices
     triangles = dt.triangles - 1 
 
-    vertex_colors = color[:len(vertices)]
+    # NOTE: 1-index them because 0 is reserved for "nothing".
+    # We are also "coloring" using the label value, rather than RGB color value
+    label = pts[3, :].T + 1 
+    # color = colorize_func(label)
+    # vertex_colors = color[:len(vertices)]
+    vertex_colors = label.reshape(-1, 1) / 255.0
+    vertex_colors = np.tile(vertex_colors, (1, 3))
+    vertex_colors = vertex_colors[:len(vertices)]
+
     with moderngl.create_context(standalone=True, backend='egl') as ctx:
 
         prog = ctx.program(

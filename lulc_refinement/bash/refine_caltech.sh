@@ -21,8 +21,13 @@ echo theta_gamma_z: $GAMMA_Z
 echo
 
 BASE_DIR=/data/microsoft_planetary_computer/outputs/preprocessed/
-RESOLUTIONs=('0.6' '1.0' '2.0' '3.0' '5.0')
-UNARY_SRCs=('dynamicworld' 'chesapeake_bay_swin_crossentropy_lc_naip_corrected' 'open_earth_map_unet_lc_naip_corrected')
+# RESOLUTIONs=('0.6' '1.0' '2.0' '3.0' '5.0')
+# UNARY_SRCs=('dynamicworld' 'chesapeake_bay_swin_crossentropy_lc_naip_corrected' 'open_earth_map_unet_lc_naip_corrected')
+RESOLUTIONs=('1.0' '2.0' '3.0' '5.0')
+UNARY_SRCs=(
+    chesapeake_bay_swin_crossentropy_lc_planet
+    open_earth_map_unet_lc_planet
+)
 
 for RESOLUTION in "${RESOLUTIONs[@]}"; do
     for UNARY_SRC in "${UNARY_SRCs[@]}"; do
