@@ -7,7 +7,7 @@ lulc_type=$6
 resolution=$7
 refinement_type=$8
 
-echo python autoseg_v2.py \
+python autoseg_v2.py \
     --data_path /data/onr-thermal/${dataset}/${trajectory} \
     --place ${place} \
     --d3_type ${d3_dtype} \

@@ -3,6 +3,8 @@ outputs/
 **/*.tiff
 **/*.tif
 **/*.png
+**/*.jpg
+**/*.jpeg
 **/__pycache__/*
 **/*.pyc
 *.pyc
