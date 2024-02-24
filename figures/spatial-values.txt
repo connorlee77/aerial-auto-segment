@@ -1,0 +1,9 @@
+Ours (DW/1m/dem/sam/naip-nir) 0.555 0.534 0.866 0.389 0.467 0.797
+Ours (DW/5m/dem/sam/naip-nir) 0.511 0.496 0.866 0.352 0.422 0.788
+Ours (DW/10m/dem/sam/naip-nir) 0.499 0.493 0.851 0.336 0.402 0.744
+Ours (DW/1m/dem/sam/planet-nir) 0.576 0.560 0.891 0.395 0.475 0.806
+Ours (DW/5m/dem/sam/planet-nir) 0.533 0.521 0.888 0.370 0.445 0.807
+Ours (DW/10m/dem/sam/planet-nir) 0.537 0.527 0.885 0.372 0.448 0.801
+Ours (DW/1m/dem/sam/none) 0.578 0.574 0.879 0.396 0.478 0.794
+Ours (DW/5m/dem/sam/none) 0.579 0.575 0.879 0.399 0.481 0.797
+Ours (DW/10m/dem/sam/none) 0.576 0.571 0.878 0.398 0.479 0.795

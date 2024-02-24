@@ -30,13 +30,13 @@ BASE_DIR=/data/microsoft_planetary_computer/outputs/preprocessed/
 #     open_earth_map_unet_lc_planet
 # )
 
-RESOLUTIONs=('10.0')
+RESOLUTIONs=('1.0' '5.0')
 UNARY_SRCs=(
     'dynamicworld'
-    'chesapeake_bay_swin_crossentropy_lc_naip_corercted'
-    'open_earth_map_unet_lc_naip_corrected'
-    'chesapeake_bay_swin_crossentropy_lc_planet'
-    'open_earth_map_unet_lc_planet'
+    # 'chesapeake_bay_swin_crossentropy_lc_naip_corercted'
+    # 'open_earth_map_unet_lc_naip_corrected'
+    # 'chesapeake_bay_swin_crossentropy_lc_planet'
+    # 'open_earth_map_unet_lc_planet'
 )
 
 for RESOLUTION in "${RESOLUTIONs[@]}"; do

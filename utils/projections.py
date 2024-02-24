@@ -57,9 +57,12 @@ def world2cam(q_xyzw, Pn, world_pts):
     Xn = project_points(X, R_mat, Pn).T
     return Xn.astype(int)
 
-def world_to_camera_coords(q_xyzw, world_pts):
+def world_to_camera_coords(q_xyzw, world_pts, orientation_jitter=None):
     r = Rotation.from_quat(q_xyzw)
     yaw, pitch, roll =  r.as_euler('ZYX', degrees=True)
+    if orientation_jitter is not None:
+        pitch += np.random.normal(0, orientation_jitter)
+        roll += np.random.normal(0, orientation_jitter)
     r = Rotation.from_euler('ZYX', [0, pitch, -roll], degrees=True)
     R_mat = r.as_matrix()
     X = world_pts[:, 0:3].T

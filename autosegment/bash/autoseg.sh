@@ -3,20 +3,21 @@
 # lulc_type=dynamicworld
 
 resolution=$1
-d3_type_list=('dem' 'dsm' 'dem_1m')
+# d3_type_list=('dem' 'dsm' 'dem_1m')
+d3_type_list=('dem')
 lulc_types=(
     'dynamicworld'
-    'chesapeake_bay_swin_crossentropy_lc_naip_corrected'
-    'chesapeake_bay_swin_crossentropy_lc_planet'
-    'open_earth_map_unet_lc_naip_corrected'
-    'open_earth_map_unet_lc_planet'
+    # 'chesapeake_bay_swin_crossentropy_lc_naip_corrected'
+    # 'chesapeake_bay_swin_crossentropy_lc_planet'
+    # 'open_earth_map_unet_lc_naip_corrected'
+    # 'open_earth_map_unet_lc_planet'
 )
 refinement_type_list=(
     'none'
-    'crf_naip_naip-nir'
-    'crf_naip_naip-nir_surface_height'
-    'crf_planet'
-    'crf_planet_surface_height'
+    # 'crf_naip_naip-nir'
+    # 'crf_naip_naip-nir_surface_height'
+    # 'crf_planet'
+    # 'crf_planet_surface_height'
 )
 
 for refinement_type in ${refinement_type_list[@]}; do
@@ -41,7 +42,7 @@ for refinement_type in ${refinement_type_list[@]}; do
             for trajectory in ${trajectories[@]}; do
                 bash bash/autoseg_helper.sh $dataset $trajectory $place $d3_dtype $epsg $lulc_type $resolution $refinement_type
             done
-
+            
             # Castaic Lake
             dataset=2022-12-20_Castaic_Lake
             epsg=epsg-32611

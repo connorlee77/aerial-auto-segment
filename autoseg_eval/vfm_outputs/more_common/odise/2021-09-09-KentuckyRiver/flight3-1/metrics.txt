@@ -1,0 +1,6 @@
+bare_ground, rocky_terrain: 0.0
+developed_structures, road: 0.636529948336279
+shrubs, trees: 0.7353844334054206
+sky: 0.31853864561365725
+water: 0.8894534109857025
+mIoU: 0.5159812876682119

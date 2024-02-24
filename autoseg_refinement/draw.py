@@ -50,34 +50,42 @@ def open_earth_map_landcover_color_map():
 
     return color_map
 
-common_classes_name2idx = {
-    'water': 0,
-    'trees': 1,
-    'low_vegetation': 2,
-    'built': 3,
-    'ground': 4,
-    'sky': 5,
-    'dont_care': -1,
-}
 
-
-def common_color_map():
-    common_colors = {
-        0: '#419BDF',  # water
-        1: '#397D49',  # trees (tree canopy)
-        2: '#88B053',  # low vegetation (shrubs, grass, crops, flooded vegetation)
-        3: '#C4281B',  # built (impervious structures, other impervious, impervious roads)
-        4: '#ffffff',  # ground (bare, barren)
-        5: '#01CCFA',  # sky
-        -1: '#B39FE1',  # dont care (snow and ice, aberdeen proving ground)
-    }
+def common_color_map(common_type='default'):
+    
+    if common_type == 'default':
+        common_colors = {
+            0: '#419BDF',  # water
+            1: '#397D49',  # trees (tree canopy)
+            2: '#88B053',  # low vegetation (shrubs, grass, crops, flooded vegetation)
+            3: '#C4281B',  # built (impervious structures, other impervious, impervious roads)
+            4: '#ffffff',  # ground (bare, barren)
+            5: '#01CCFA',  # sky
+            -1: '#B39FE1',  # dont care (snow and ice, aberdeen proving ground)
+        }
+    elif common_type == 'more':
+        common_colors = {
+            0: '#419BDF',  # water
+            1: '#397D49',  # vegetation
+            2: '#C4281B',  # built (impervious structures, other impervious, impervious roads)
+            3: '#ffffff',  # ground (bare, barren)
+            4: '#01CCFA',  # sky
+            -1: '#B39FE1',  # dont care (snow and ice, aberdeen proving ground)
+        }
+    elif common_type == 'most':
+        common_colors = {
+            0: '#419BDF',  # water
+            1: '#ffffff',  # ground (bare, barren)
+            2: '#01CCFA',  # sky
+            -1: '#B39FE1',  # dont care (snow and ice, aberdeen proving ground)
+        }
 
     color_map = {}
     for idx, color in common_colors.items():
         color_map[idx] = ImageColor.getcolor(color, "RGB")
     return color_map
 
-def get_color_map(set_name):
+def get_color_map(set_name, common_type='default'):
     if set_name == 'chesapeake':
         return chesapeake_cvpr_landcover_color_map()
     elif set_name == 'open_earth_map':
@@ -85,12 +93,12 @@ def get_color_map(set_name):
     elif set_name == 'dynamicworld':
         return dynamic_world_color_map()
     elif set_name == 'common':
-        return common_color_map()
+        return common_color_map(common_type)
     else:
         raise ValueError(f'No color map found for {set_name}')
     
-def colorize(mask, set_name, base_image=None):
-    color_map = get_color_map(set_name)
+def colorize(mask, set_name, base_image=None, common_type='default'):
+    color_map = get_color_map(set_name, common_type=common_type)
 
     # add turquoise sky color to color map since it is not present in nadir-facing LULC.
     color_map[255] = np.array([1, 204, 250], dtype=np.uint8)

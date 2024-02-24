@@ -1,29 +1,31 @@
 # segmentation_masks_path=/home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks
 segmentation_masks_path=$1 
 output_dir=$2
+commonize_to=$3
 
 # This works for any segmentations, even not SAM, as long as the unrefined_semantic_mask_dir is in the same format as the SAM predictions
 unrefined_segmentations_dir=/home/connor/repos/aerial-auto-segment/autosegment/outputs
 
-D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
+# D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
+D3_TYPE_LIST=('dem')
 LULC_TYPE_LIST=(
     "dynamicworld"
-    "chesapeake_bay_swin_crossentropy_lc_naip_corrected"
-    "chesapeake_bay_swin_crossentropy_lc_planet"
-    "open_earth_map_unet_lc_naip_corrected"
-    "open_earth_map_unet_lc_planet"
+    # "chesapeake_bay_swin_crossentropy_lc_naip_corrected"
+    # "chesapeake_bay_swin_crossentropy_lc_planet"
+    # "open_earth_map_unet_lc_naip_corrected"
+    # "open_earth_map_unet_lc_planet"
 )
 REFINEMENT_TYPE_LIST=(
     'none'
-    'crf_naip_naip-nir'
-    'crf_naip_naip-nir_surface_height'
-    'crf_planet'
-    'crf_planet_surface_height'
+    # 'crf_naip_naip-nir'
+    # 'crf_naip_naip-nir_surface_height'
+    # 'crf_planet'
+    # 'crf_planet_surface_height'
 )
 RESOLUTION_LIST=(
     '1.0'
-    '5.0'
-    '10.0'
+    # '5.0'
+    # '10.0'
 )
 
 for resolution in ${RESOLUTION_LIST[@]}; do
@@ -54,9 +56,11 @@ for resolution in ${RESOLUTION_LIST[@]}; do
                     ONR_2023-03-21-09-59-39
                 )
                 for trajectory in ${TRAJECTORIES[@]}; do
+                    (
                     unrefined_path=${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${PLACE}/${trajectory}
                     sam_predicted_mask_dir=$segmentation_masks_path
-                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir
+                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir $commonize_to 
+                    ) &
                 done
 
                 # Castaic Lake
@@ -65,8 +69,9 @@ for resolution in ${RESOLUTION_LIST[@]}; do
                 for trajectory in ${TRAJECTORIES[@]}; do
                     unrefined_path=${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${PLACE}/${trajectory}
                     sam_predicted_mask_dir=$segmentation_masks_path
-                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir
+                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir $commonize_to
                 done
+
                 # Colorado River
                 PLACE=2022-05-15_ColoradoRiver
                 TRAJECTORIES=(
@@ -75,10 +80,13 @@ for resolution in ${RESOLUTION_LIST[@]}; do
                     flight4
                 )
                 for trajectory in ${TRAJECTORIES[@]}; do
+                (
                     unrefined_path=${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${PLACE}/${trajectory}
                     sam_predicted_mask_dir=$segmentation_masks_path
-                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir
+                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir $commonize_to
+                ) &
                 done
+
                 # Kentucky River
                 PLACE=2021-09-09-KentuckyRiver
                 TRAJECTORIES=(
@@ -87,10 +95,14 @@ for resolution in ${RESOLUTION_LIST[@]}; do
                     flight3-1
                 )
                 for trajectory in ${TRAJECTORIES[@]}; do
+                (
                     unrefined_path=${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${PLACE}/${trajectory}
                     sam_predicted_mask_dir=$segmentation_masks_path
-                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir
+                    bash bash/refine_helper.sh $sam_predicted_mask_dir $unrefined_segmentations_dir $unrefined_path $class_set $output_dir $commonize_to
+                ) &
                 done
+                wait
+
             done
         done
     done

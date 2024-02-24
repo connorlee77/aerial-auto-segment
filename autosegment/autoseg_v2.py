@@ -102,6 +102,10 @@ if __name__ == '__main__':
         'open_earth_map_unet_lc_planet',
     ])
 
+    parser.add_argument('--jitter-gps-std', default=None, type=float, help='Jitter GPS to simulate GPS error')
+    parser.add_argument('--jitter-alt-std', default=None, type=float, help='Jitter altitude to simulate error')
+    parser.add_argument('--jitter-orientation-std', default=None, type=float, help='Jitter orientation to simulate IMU error')
+
     parser.add_argument('--resolution', type=str, default='1.0', choices=['0.6', '1.0', '2.0', '3.0', '5.0', '10.0'])
     parser.add_argument('--refinement_type', type=str, default=None,
                         choices=['none', 'crf_naip_naip-nir', 'crf_naip_naip-nir_surface_height', 'crf_planet', 'crf_planet_surface_height'])
@@ -320,6 +324,11 @@ if __name__ == '__main__':
         r = Rotation.from_quat(cam_xyzw)
         yaw, pitch, roll = r.as_euler('ZYX', degrees=False)
 
+        if args.jitter_orientation_std is not None:
+            # orientation_jitter to radians
+            rad_jitter = args.jitter_orientation_std * np.pi / 180
+            yaw += np.random.normal(0, rad_jitter)
+
         # Discretization of the world grid
         Nx = 250
         Ny = 100
@@ -337,6 +346,13 @@ if __name__ == '__main__':
         
         # Convert lat/lng of drone to UTM
         utm_e, utm_n = tform.transform(coords[0], coords[1])
+        if args.jitter_gps_std is not None:
+            # jitter GPS to simulate GPS error
+            utm_e += np.random.normal(0, args.jitter_gps_std)
+            utm_n += np.random.normal(0, args.jitter_gps_std)
+        if args.jitter_alt_std is not None:
+            z += np.random.normal(0, args.jitter_alt_std)
+
         rows, cols = rasterio.transform.rowcol(label_tiff_data.transform, xs=utm_e, ys=utm_n)
 
         ptA_utm = np.array([utm_e, utm_n])
@@ -370,7 +386,7 @@ if __name__ == '__main__':
         word_coord_pts[:, 2] = -word_coord_pts[:, 2] - z
 
         # word_coord_pts are the 3D labels (x: forward, y: right, z: down)
-        camera_pts = world_to_camera_coords(cam_xyzw, word_coord_pts).T
+        camera_pts = world_to_camera_coords(cam_xyzw, word_coord_pts, orientation_jitter=args.jitter_orientation_std).T
         labeled_camera_pts = np.concatenate([camera_pts, world_coord_labels[:, -1].reshape(-1, 1)], axis=1)
         name = os.path.basename(img_path).split('.')[0]
         # Transform to camera coordinates. Only used to directly project 3d points to image frame.

@@ -19,6 +19,28 @@ common_classes_name2idx = {
     'dont_care': -1,
 }
 
+# water, vegetation, built, ground, sky
+more_common_classes_name2idx = {
+    'water': 0,
+    'trees': 1,
+    'low_vegetation': 1,
+    'built': 2,
+    'ground': 3,
+    'sky': 4,
+    'dont_care': -1,
+}
+
+# water, land, sky
+most_common_classes_name2idx = {
+    'water': 0,
+    'trees': 1,
+    'low_vegetation': 1,
+    'built': 1,
+    'ground': 1,
+    'sky': 2,
+    'dont_care': -1,
+}
+
 dynamicworld_idx2name = {
     0: 'water',
     1: 'trees',
@@ -69,12 +91,12 @@ chesapeake_bay_old2new = {
 
 open_earth_map_idx2name = {
     0: 'Bareland',
-    1: 'Grass',
-    2: 'Pavement',
-    3: 'Road',
+    1: 'Grass', # rangeland
+    2: 'Pavement', # developed
+    3: 'Road', 
     4: 'Tree',
     5: 'Water',
-    6: 'Cropland',
+    6: 'Cropland', # agriculture
     7: 'buildings',
     255: 'sky',  # not in the original open earth map classes
 }
@@ -101,12 +123,13 @@ def get_converted_mapping(old_idx2name, old_name2new_name, new_name2idx):
         equivalent_class = old_name2new_name[v]
         new_idx = new_name2idx[equivalent_class]
         new_mapping[k] = new_idx
-        print('{} ({}) -> {} ({})'.format(v, k, equivalent_class, new_idx))
+
         new_class_set.add(equivalent_class)
         new_class_idx_set.add(new_idx)
-    
+        print('{} ({}) -> {} ({})'.format(v, k, equivalent_class, new_idx))
+
     print('New class set:', new_class_set)
-    for i in range(0, 6):
+    for i in range(0, max(new_name2idx.values()) + 1):
         assert i in new_class_idx_set, 'Class index {} not found in new class set'.format(i)
 
     return new_mapping
@@ -126,8 +149,11 @@ def split_unlabeled_segments(mask):
     new_idx = 0
     for i in np.unique(mask):
         bin_mask = mask == i
-        # kernel = np.ones((11,11),np.uint8)
-        # bin_mask = cv2.morphologyEx(bin_mask.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+        # before = bin_mask.copy()
+        kernel = np.ones((11, 11), np.uint8)
+        bin_mask = cv2.morphologyEx(bin_mask.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+        # os.makedirs('test123/masks', exist_ok=True)
+        # cv2.imwrite('test123/masks/{}.png'.format(str(i).zfill(3)), np.hstack([bin_mask*255, before*255]).astype(np.uint8))
         contours, _ = cv2.findContours(bin_mask.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         for c in contours:
             cv2.drawContours(split_mask, [c], -1, new_idx, cv2.FILLED)
@@ -156,21 +182,27 @@ def refine_semantic_mask_with_sam(unrefined_semantic_mask, sam_mask):
 
     return new_mask
 
+
 def verify_args(args):
     print(args)
     assert os.path.exists(args.sam_predicted_mask_dir), 'Path {} does not exist'.format(args.sam_predicted_mask_dir)
-    assert os.path.exists(args.unrefined_semantic_mask_dir), 'Path {} does not exist'.format(args.unrefined_semantic_mask_dir)
+    assert os.path.exists(args.unrefined_semantic_mask_dir), 'Path {} does not exist'.format(
+        args.unrefined_semantic_mask_dir)
     assert os.path.exists(args.data_dir), 'Path {} does not exist'.format(args.data_dir)
-    
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Refine SAM predicted masks')
-    parser.add_argument('--sam_predicted_mask_dir', type=str, required=True, help='Path to directory containing SAM predicted masks')
+    parser.add_argument('--sam_predicted_mask_dir', type=str, required=True,
+                        help='Path to directory containing SAM predicted masks')
     parser.add_argument('--unrefined_semantic_mask_dir', type=str, required=True,
                         help='Path to directory containing unrefined semantic masks')
     parser.add_argument('--class_set', type=str, required=True, help='Class set to use for colorization',
                         choices=['dynamicworld', 'chesapeake', 'open_earth_map'])
+
     parser.add_argument('--commonize', action='store_true', help='Commonize the class set')
+    parser.add_argument('--commonize_to', type=str, choices=['default', 'more', 'most'], default='default')
+
     parser.add_argument('--data_dir', type=str, required=True,
                         help='Path to directory containing thermal images and ground truth masks')
     parser.add_argument('--output_dir', default='outputs', type=str, help='Path to directory to save refined masks')
@@ -178,13 +210,20 @@ if __name__ == '__main__':
     verify_args(args)
 
     class_coloring = args.class_set
+
+    common_name2idx_mapping = common_classes_name2idx
+    if args.commonize_to == 'more':
+        common_name2idx_mapping = more_common_classes_name2idx
+    elif args.commonize_to == 'most':
+        common_name2idx_mapping = most_common_classes_name2idx
+
     # Get common class mapping
     if args.class_set == 'dynamicworld':
-        new_mapping = get_converted_mapping(dynamicworld_idx2name, dynamicworld_old2new, common_classes_name2idx)
+        new_mapping = get_converted_mapping(dynamicworld_idx2name, dynamicworld_old2new, common_name2idx_mapping)
     elif args.class_set == 'chesapeake':
-        new_mapping = get_converted_mapping(chesapeake_bay_idx2name, chesapeake_bay_old2new, common_classes_name2idx)
+        new_mapping = get_converted_mapping(chesapeake_bay_idx2name, chesapeake_bay_old2new, common_name2idx_mapping)
     elif args.class_set == 'open_earth_map':
-        new_mapping = get_converted_mapping(open_earth_map_idx2name, open_earth_map_old2new, common_classes_name2idx)
+        new_mapping = get_converted_mapping(open_earth_map_idx2name, open_earth_map_old2new, common_name2idx_mapping)
     else:
         raise ValueError(f'No common class mapping found for {args.class_set}')
 
@@ -196,7 +235,7 @@ if __name__ == '__main__':
 
         place, trajectory, name = unrefined_semantic_mask_path.split(os.path.sep)[-3:]
         basic_name = os.path.basename(unrefined_semantic_mask_path).replace('_mask.', '.')
-        # if '25372' not in basic_name:
+        # if '32461' not in basic_name:
         #     continue
         sam_predicted_mask_path = os.path.join(args.sam_predicted_mask_dir, place, trajectory, basic_name)
         assert os.path.exists(sam_predicted_mask_path), f'No SAM predicted mask found for {sam_predicted_mask_path}'
@@ -212,7 +251,8 @@ if __name__ == '__main__':
                                            basic_name.replace('thermal-', 'pair-'))
         assert os.path.exists(original_image_path), f'No original image found for {original_image_path}'
 
-        gt_mask_path = os.path.join(args.data_dir, cogito_dir, trajectory, 'masks', basic_name.replace('thermal-', 'pair-'))
+        gt_mask_path = os.path.join(args.data_dir, cogito_dir, trajectory, 'masks',
+                                    basic_name.replace('thermal-', 'pair-'))
         assert os.path.exists(gt_mask_path), f'No ground truth mask found for {gt_mask_path}'
 
         # Read images and masks
@@ -227,9 +267,10 @@ if __name__ == '__main__':
             class_coloring = 'common'
         # Refine the mask
         refined_mask = refine_semantic_mask_with_sam(unrefined_semantic_mask, sam_predicted_mask)
-
+        
         # Postprocess for saving
-        colorized_mask, overlay_img = colorize(refined_mask, class_coloring, base_image=original_image)
+        colorized_mask, overlay_img = colorize(refined_mask, class_coloring,
+                                               base_image=original_image, common_type=args.commonize_to)
         save_path = os.path.join(args.output_dir, basic_name)
 
         cv2.imwrite(save_path, refined_mask)
@@ -243,15 +284,16 @@ if __name__ == '__main__':
         #             os.path.join(args.output_dir, basic_name.replace('.png', '_unrefined.png')))
 
         # Save an image strip at half size for each image.
-        sam_predicted_mask = cv2.imread(sam_predicted_mask_path.replace('cartd_labeled_sam_png_masks', 'cartd_labeled_sam_masks_overlay'), 1)
+        sam_predicted_mask = cv2.imread(sam_predicted_mask_path.replace(
+            'cartd_labeled_sam_png_masks', 'cartd_labeled_sam_masks_overlay'), 1)
         unrefined_semantic_mask = cv2.imread(unrefined_semantic_mask_path.replace('mask', 'overlay'), 1)
 
         # resize all images by half
         H, W = original_image.shape[:2]
-        sam_predicted_mask = cv2.resize(sam_predicted_mask, (int(W/2), int(H/2)))
-        unrefined_semantic_mask = cv2.resize(unrefined_semantic_mask, (int(W/2), int(H/2)))
-        original_image = cv2.resize(original_image, (int(W/2), int(H/2)))
-        overlay_img = cv2.resize(overlay_img, (int(W/2), int(H/2)))
+        sam_predicted_mask = cv2.resize(sam_predicted_mask, (int(W / 2), int(H / 2)))
+        unrefined_semantic_mask = cv2.resize(unrefined_semantic_mask, (int(W / 2), int(H / 2)))
+        original_image = cv2.resize(original_image, (int(W / 2), int(H / 2)))
+        overlay_img = cv2.resize(overlay_img, (int(W / 2), int(H / 2)))
         # colorized_mask = cv2.resize(colorized_mask, (int(W/2), int(H/2)))
 
         img_strip = np.hstack([original_image, unrefined_semantic_mask, sam_predicted_mask, overlay_img])
