@@ -4,7 +4,7 @@ output_dir=$2
 commonize_to=$3
 
 # This works for any segmentations, even not SAM, as long as the unrefined_semantic_mask_dir is in the same format as the SAM predictions
-unrefined_segmentations_dir=/home/connor/repos/aerial-auto-segment/autosegment/jitter_outputs
+unrefined_segmentations_dir=/home/connor/repos/aerial-auto-segment/autosegment/jitter_outputs_v2
 
 # D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
 D3_TYPE_LIST=('dem')
@@ -28,11 +28,16 @@ RESOLUTION_LIST=(
     # '10.0'
 )
 
-# gps_jitter_list=(0.5 1.0 2.0 3.0 5.0 10.0 25.0 50.0)
-gps_jitter_list=(0.0)
-# altitude_jitter_list=(0.25 0.5 1.0 2.0 3.0 5.0 10.0 20.0)
-altitude_jitter_list=(0.0)
-orientation_jitter_list=(0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+# gps_jitter_list=(0.5 1.0 2.0 3.0 5.0 6.0 7.0 8.0 9.0 10.0)
+# # gps_jitter_list=(0.0)
+# # altitude_jitter_list=(0.25 0.5 1.0 2.0 3.0 5.0 10.0 20.0)
+# altitude_jitter_list=(0.0)
+# # orientation_jitter_list=(0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
+# orientation_jitter_list=(0.0)
+
+gps_jitter_list=(0.0 0.5 1.0 2.0 3.0 5.0 6.0 7.0 8.0 9.0 10.0)
+altitude_jitter_list=(0.0 0.25 0.5 1.0 2.0 3.0 5.0 10.0 20.0)
+orientation_jitter_list=(0.0 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
 for ori in ${orientation_jitter_list[@]}; do
     for alt in ${altitude_jitter_list[@]}; do
         for gps in ${gps_jitter_list[@]}; do

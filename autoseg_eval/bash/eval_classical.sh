@@ -1,6 +1,6 @@
-refined_dir=/home/connor/repos/aerial-auto-segment/autoseg_refinement/classical_outputs
+refined_dir=/home/connor/repos/aerial-auto-segment/autoseg_refinement/classical_outputs_v2
 gt_dir=/data/onr-thermal/cogito-annotation/converted-cogito-annotations-final
-output_dir=./classical_outputs
+output_dir=./classical_outputs_v2
 
 # common_type=more_common # more_common, most_common
 # seg_src=open_sam_boxnms_0p35
@@ -17,7 +17,8 @@ SEG_SRC_LIST=(
     felzenszwalb
     slic
 )
-D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
+# D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
+D3_TYPE_LIST=('dem')
 LULC_TYPE_LIST=(
     "dynamicworld"
     # "chesapeake_bay_swin_crossentropy_lc_naip_corrected"

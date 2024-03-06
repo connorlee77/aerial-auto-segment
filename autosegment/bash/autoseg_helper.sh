@@ -11,7 +11,7 @@ python autoseg_v2.py \
     --data_path /data/onr-thermal/${dataset}/${trajectory} \
     --place ${place} \
     --d3_type ${d3_dtype} \
-    --output_dir outputs/${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${dataset}/${trajectory} \
+    --output_dir outputs_v2/${lulc_type}/${d3_dtype}/${resolution}/${refinement_type}/${dataset}/${trajectory} \
     --epsg ${epsg} \
     --lulc_type ${lulc_type} \
     --resolution ${resolution} \

@@ -18,3 +18,5 @@ lulc_refinement/data_memmap
 **/*.pt
 **/*.pth
 **/*.h5
+**/*.npy
+**/*.zip

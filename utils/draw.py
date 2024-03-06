@@ -284,6 +284,7 @@ def draw_overlay_and_labels(img, points, labels, color_map=None, alpha=0.5):
     overlay = cv2.rotate(overlay, cv2.ROTATE_180)
     overlay = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
 
+    # img = cv2.rotate(img, cv2.ROTATE_180)
     img_with_pts = np.copy(img)
     # img_with_pts = np.zeros_like(img)
     for i in range(points.shape[0]):

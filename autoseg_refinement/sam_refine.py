@@ -230,9 +230,11 @@ if __name__ == '__main__':
     os.makedirs(args.output_dir, exist_ok=True)
     unrefined_semantic_mask_paths = sorted(list(filter(lambda x: 'color' not in x, glob.glob(
         os.path.join(args.unrefined_semantic_mask_dir, '*_mask.png')))))
+    # unrefined_semantic_mask_paths = sorted(glob.glob(
+    #     os.path.join(args.unrefined_semantic_mask_dir, '*_mask.png')))
 
     for unrefined_semantic_mask_path in tqdm.tqdm(unrefined_semantic_mask_paths):
-
+        # 18611, 26632 49073
         place, trajectory, name = unrefined_semantic_mask_path.split(os.path.sep)[-3:]
         basic_name = os.path.basename(unrefined_semantic_mask_path).replace('_mask.', '.')
         # if '32461' not in basic_name:
@@ -298,3 +300,9 @@ if __name__ == '__main__':
 
         img_strip = np.hstack([original_image, unrefined_semantic_mask, sam_predicted_mask, overlay_img])
         cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_strip.jpg')), img_strip)
+
+        # cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_overlay.jpg')), overlay_img)
+        # cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_colorized.jpg')), colorized_mask)
+        # cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_original.jpg')), original_image)
+        # cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_sam.jpg')), sam_predicted_mask)
+        # cv2.imwrite(os.path.join(args.output_dir, basic_name.replace('.png', '_unrefined.jpg')), unrefined_semantic_mask)

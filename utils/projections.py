@@ -81,7 +81,7 @@ def create_world_grid(yaw, x_mag=8000, y_mag=3000, Nx=200, Ny=200, exp_x=5, exp_
         x_magnitudes = x_space
 
         # New stuff
-        y_mag_start = 10
+        y_mag_start = 50
         y_magnitudes = np.linspace(-y_mag_start, y_mag_start, num=Ny).reshape(Ny, 1)
         y_lin_scale = np.linspace(1, int(math.pow(y_mag / y_mag_start, 1/3)), num=Nx).reshape(1, Nx) ** 3
         y_magnitudes_scaled = y_magnitudes * y_lin_scale

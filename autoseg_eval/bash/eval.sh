@@ -1,6 +1,6 @@
-refined_dir=/home/connor/repos/aerial-auto-segment/autoseg_refinement/outputs
+refined_dir=/home/connor/repos/aerial-auto-segment/autoseg_refinement/outputs_v2
 gt_dir=/data/onr-thermal/cogito-annotation/converted-cogito-annotations-final
-output_dir=./outputs
+output_dir=./outputs_v2
 
 # common_type=more_common # more_common, most_common
 # seg_src=open_sam_boxnms_0p35
@@ -24,14 +24,14 @@ SEG_SRC_LIST=(
 D3_TYPE_LIST=('dem' 'dsm' 'dem_1m')
 LULC_TYPE_LIST=(
     "dynamicworld"
-    # "chesapeake_bay_swin_crossentropy_lc_naip_corrected"
-    # "chesapeake_bay_swin_crossentropy_lc_planet"
-    # "open_earth_map_unet_lc_naip_corrected"
-    # "open_earth_map_unet_lc_planet"
+    "chesapeake_bay_swin_crossentropy_lc_naip_corrected"
+    "chesapeake_bay_swin_crossentropy_lc_planet"
+    "open_earth_map_unet_lc_naip_corrected"
+    "open_earth_map_unet_lc_planet"
 )
 REFINEMENT_TYPE_LIST=(
-    # 'none'
-    # 'crf_naip_naip-nir'
+    'none'
+    'crf_naip_naip-nir'
     # 'crf_naip_naip-nir_surface_height'
     'crf_planet'
     # 'crf_planet_surface_height'
@@ -39,7 +39,7 @@ REFINEMENT_TYPE_LIST=(
 RESOLUTION_LIST=(
     '1.0'
     '5.0'
-    # '10.0'
+    '10.0'
 )
 
 for res in ${RESOLUTION_LIST[@]}; do

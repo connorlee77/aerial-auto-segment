@@ -58,6 +58,9 @@ def get_mask_mgl(pts, I, colorize_func=None):
     # triangles = faces[:, 1:]
 
     # startinpy is 10x faster than pyvista for delaunay triangulation
+    # but it can be buggy sometimes: startinpy surface mesh on kentucky river 
+    # produces different results than pyvista, despite same projected points.
+
     dt = startinpy.DT()
     xyz = pts[[0, 1, 2], :].T
     dt.insert(xyz, insertionstrategy="BBox")

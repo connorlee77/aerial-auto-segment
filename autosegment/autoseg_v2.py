@@ -289,8 +289,11 @@ if __name__ == '__main__':
     # Begin segmentation projection here
     ##########################################################################
     print('Starting segmentation estimation')
+    time_avg = []
     for t, img_path in tqdm.tqdm(enumerate(image_paths), total=len(image_paths)):
+        # img_path = '/data/onr-thermal/2021-09-09-KentuckyRiver/flight3-1/images/thermal/thermal-03244.tiff'
 
+        t1 = time.time()
         image_data = alignment_data[alignment_data['image'] == "images/thermal/{}".format(os.path.basename(img_path))]
         if len(image_data) == 0:
             print('Skipping {}, no pose info...'.format(img_path))
@@ -331,7 +334,7 @@ if __name__ == '__main__':
 
         # Discretization of the world grid
         Nx = 250
-        Ny = 100
+        Ny = 200
 
         x_unit_vec, y_unit_vec, x_magnitudes, y_magnitudes, world_pts, xx, yy = create_world_grid(
             yaw,
@@ -363,13 +366,9 @@ if __name__ == '__main__':
         utm_grid = x_grid + y_grid
         utm_grid = utm_grid.reshape(2, Ny, Nx).transpose(2, 1, 0)
 
-        t1 = time.time()
         sampled_labels = label_interp(utm_grid.reshape(-1, 2))
         sampled_z = dsm_interp(utm_grid.reshape(-1, 2))
-        t2 = time.time()
-        print('{:3f} seconds to interpolate'.format(t2 - t1))
 
-        t1 = time.time()
         # Offset elevation map for the correct elevation
         world_coord_z = np.clip(sampled_z.reshape(Nx * Ny, 1) - baseline_elevation, 0, None)
         word_coord_pts = np.concatenate([world_pts.reshape(Nx * Ny, 2), world_coord_z], axis=1)
@@ -424,6 +423,7 @@ if __name__ == '__main__':
 
         mgl_colorized_mask = colorize_func(mgl_mask)
         t2 = time.time()
+        time_avg.append(t2 - t1)
         print('{:3f} seconds to render mask'.format(t2 - t1))
 
         name = os.path.basename(img_path).split('.')[0]
@@ -433,3 +433,5 @@ if __name__ == '__main__':
         cv2.imwrite('{}/{}_color_mask.png'.format(args.output_dir, name),
                     cv2.cvtColor(mgl_colorized_mask, cv2.COLOR_RGB2BGR))
         cv2.imwrite('{}/{}_mask.png'.format(args.output_dir, name), mgl_mask)
+        
+print(np.array(time_avg).mean())

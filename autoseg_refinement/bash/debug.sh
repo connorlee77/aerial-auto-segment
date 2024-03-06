@@ -44,17 +44,21 @@ python sam_refine.py \
 # taskset --cpu-list 81-95 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p35_cartd_labeled_sam_png_masks outputs/most_common/open_sam_boxnms_0p35 most
 
 
+conda activate autoseg
+taskset --cpu-list 0-15 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs_v2/common/open_sam_boxnms_0p50 default
 
-# taskset --cpu-list 15-29 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs/open_sam_boxnms_0p50 default
+conda activate autoseg
+taskset --cpu-list 16-30 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs_v2/more_common/open_sam_boxnms_0p50 more
 
-# taskset --cpu-list 30-44 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs/more_common/open_sam_boxnms_0p50 more
-
-# taskset --cpu-list 45-59 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs/most_common/open_sam_boxnms_0p50 most
-
+conda activate autoseg
+taskset --cpu-list 31-45 bash bash/refine_seg.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks outputs_v2/most_common/open_sam_boxnms_0p50 most
 
 
-taskset --cpu-list 15-29 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs/open_sam_boxnms_0p50 default
+conda activate autoseg
+taskset --cpu-list 46-60 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs_v2/common/open_sam_boxnms_0p50 default
 
-taskset --cpu-list 30-44 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs/more_common/open_sam_boxnms_0p50 more
+conda activate autoseg
+taskset --cpu-list 61-75 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs_v2/more_common/open_sam_boxnms_0p50 more
 
-taskset --cpu-list 45-59 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs/most_common/open_sam_boxnms_0p50 most
+conda activate autoseg
+taskset --cpu-list 76-90 bash bash/refine_seg_jitter.sh /home/connor/repos/caltech-aerial-thermal-dataset/foundation_models/segmentation/boxnms0p5_cartd_labeled_sam_png_masks jitter_outputs_v2/most_common/open_sam_boxnms_0p50 most
