@@ -15,6 +15,7 @@ Key Features:
 
 Feel free to explore the codebase and contribute to further advancements in thermal semantic perception algorithms!
 
+![flowchart](https://github.com/connorlee77/aerial-auto-segment/assets/6981697/9e5730b0-fe59-4203-b678-9185c4cae5d5)
 
 ## Environment Setup
 ### Setup anaconda environment.
