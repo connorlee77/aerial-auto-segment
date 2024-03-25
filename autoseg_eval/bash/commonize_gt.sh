@@ -1,0 +1,3 @@
+python commonize_gt.py --gt_dir /data/onr-thermal/cogito-annotation/converted-cogito-annotations-final --output_dir cartd_cm/cm6 --common_type common
+python commonize_gt.py --gt_dir /data/onr-thermal/cogito-annotation/converted-cogito-annotations-final --output_dir cartd_cm/cm5 --common_type more_common
+python commonize_gt.py --gt_dir /data/onr-thermal/cogito-annotation/converted-cogito-annotations-final --output_dir cartd_cm/cm3 --common_type most_common
