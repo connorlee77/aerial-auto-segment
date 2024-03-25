@@ -20,8 +20,6 @@ refinement_type_list=(
     # 'crf_planet_surface_height'
 )
 
-# orientation_jitter=0.0
-# altitude_jitter=0.0
 # gps_jitter_list=(0.5 1.0 2.0 3.0 4.0 5.0 6.0 8.0 10.0)
 gps_jitter_list=(0.0)
 # altitude_jitter_list=(0.25 0.5 1.0 2.0 3.0 5.0 10.0 20.0)
@@ -32,8 +30,6 @@ orientation_jitter_list=(0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0)
 for orientation_jitter in ${orientation_jitter_list[@]}; do
     for altitude_jitter in ${altitude_jitter_list[@]}; do
         for gps_jitter in ${gps_jitter_list[@]}; do
-            # orientation_jitter_list=(0.0 5.0 10.0 15.0 20.0 25.0 30.0)
-            # for orientation_jitter in ${orientation_jitter_list[@]}; do
             for refinement_type in ${refinement_type_list[@]}; do
                 for d3_dtype in ${d3_type_list[@]}; do
                     for lulc_type in ${lulc_types[@]}; do
@@ -79,18 +75,18 @@ for orientation_jitter in ${orientation_jitter_list[@]}; do
                             bash bash/autoseg_jitter_helper.sh $dataset $trajectory $place $d3_dtype $epsg $lulc_type $resolution $refinement_type $gps_jitter $orientation_jitter $altitude_jitter
                         done
 
-                        # # Kentucky River
-                        # dataset=2021-09-09-KentuckyRiver
-                        # epsg=epsg-32616
-                        # place=kentucky_river
-                        # trajectories=(
-                        #     flight1-1
-                        #     flight2-1
-                        #     flight3-1
-                        # )
-                        # for trajectory in ${trajectories[@]}; do
-                        #     bash bash/autoseg_jitter_helper.sh $dataset $trajectory $place $d3_dtype $epsg $lulc_type $resolution $refinement_type $gps_jitter $orientation_jitter $altitude_jitter
-                        # done
+                        # Kentucky River
+                        dataset=2021-09-09-KentuckyRiver
+                        epsg=epsg-32616
+                        place=kentucky_river
+                        trajectories=(
+                            flight1-1
+                            flight2-1
+                            flight3-1
+                        )
+                        for trajectory in ${trajectories[@]}; do
+                            bash bash/autoseg_jitter_helper.sh $dataset $trajectory $place $d3_dtype $epsg $lulc_type $resolution $refinement_type $gps_jitter $orientation_jitter $altitude_jitter
+                        done
 
                     done
                 done

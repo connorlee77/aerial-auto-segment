@@ -21,9 +21,6 @@ from utils import (
 )
 
 
-# Mask: /home/connor/repos/aerial-auto-segment/autoseg_refinement/outputs/more_common/open_sam_boxnms_0p35/chesapeake_bay_swin_crossentropy_lc_planet/dem/1.0/crf_planet_surface_height/2021-09-09-KentuckyRiver/flight1-1/thermal-00180.png
-# GT: /data/onr-thermal/cogito-annotation/converted-cogito-annotations-final/kentucky_river/flight1-1/masks/pair-00000.png
-
 if __name__ == '__main__':
     # Create the parser
     parser = argparse.ArgumentParser(description='Colorize mask')

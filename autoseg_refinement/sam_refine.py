@@ -234,11 +234,8 @@ if __name__ == '__main__':
     #     os.path.join(args.unrefined_semantic_mask_dir, '*_mask.png')))
 
     for unrefined_semantic_mask_path in tqdm.tqdm(unrefined_semantic_mask_paths):
-        # 18611, 26632 49073
         place, trajectory, name = unrefined_semantic_mask_path.split(os.path.sep)[-3:]
         basic_name = os.path.basename(unrefined_semantic_mask_path).replace('_mask.', '.')
-        # if '32461' not in basic_name:
-        #     continue
         sam_predicted_mask_path = os.path.join(args.sam_predicted_mask_dir, place, trajectory, basic_name)
         assert os.path.exists(sam_predicted_mask_path), f'No SAM predicted mask found for {sam_predicted_mask_path}'
 
@@ -276,6 +273,11 @@ if __name__ == '__main__':
         save_path = os.path.join(args.output_dir, basic_name)
 
         cv2.imwrite(save_path, refined_mask)
+
+
+
+
+        
         # cv2.imwrite(save_path.replace('refined.png', 'refined-color.png'), colorized_mask)
         # if overlay_img is not None:
         #     cv2.imwrite(save_path.replace('refined.png', 'refined-overlay.png'), overlay_img)

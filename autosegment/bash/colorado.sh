@@ -12,7 +12,6 @@ python autoseg_v2.py --data_path /data/onr-thermal/2021-09-09-KentuckyRiver/flig
 python autoseg_v2.py --data_path /data/onr-thermal/2021-09-09-KentuckyRiver/flight3-1/ --place kentucky_river --d3_type dsm --output_dir 2021-09-09-KentuckyRiver/flight3-1 --epsg epsg-32616
 
 
-# tide too high
 python autoseg_v2.py --data_path /data/onr-thermal/2023-03-XX_Duck/ONR_2023-03-21-18-20-21/ --place duck --d3_type dsm --output_dir 2023-03-XX_Duck/ONR_2023-03-21-18-20-21 --epsg epsg-32618
 
 python autoseg_v2.py --data_path /data/onr-thermal/2023-03-XX_Duck/ONR_2023-03-22-14-41-46/ --place duck --d3_type dsm --output_dir 2023-03-XX_Duck/ONR_2023-03-22-14-41-46 --epsg epsg-32618

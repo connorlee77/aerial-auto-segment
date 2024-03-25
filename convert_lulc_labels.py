@@ -12,12 +12,10 @@ import rasterio.merge
 import rasterio.mask
 import shapely
 
-# from reproject_raster import reproject_raster
-from utils.rasterio_utils import mask_raster_by_shapely, reproject_raster_v2, save_raster_preview_as_png
+from utils.rasterio_utils import save_raster_preview_as_png
 
 # Mapping for DynamicWorld and Chesapeake Bay Landcover labels to a common label set.
 dw_cb_2_common = {
-    # See https://caltech-my.sharepoint.com/personal/clee_caltech_edu/Documents/dynamicworld-chesapeakebay-mapping.xlsx?d=wdd3ea3a78d594f3f83ab079111ef34ef&csf=1&web=1&e=xUhzv1&nav=MTVfe0YxODNBMTIwLTFBMkMtNDJDOS04RUQxLTdFNzZDNEJFQkEyRn0
 
     'dynamicworld': {
         0: 0,  # water
