@@ -1,8 +1,8 @@
 # Semantics from Space: Satellite-Guided Thermal Semantic Segmentation Annotation for Aerial Field Robots
 
-Welcome to the Semantics from Space repository! This project introduces a novel method for automatically generating semantic segmentation annotations for thermal imagery obtained from aerial vehicles. Our method leverages satellite-derived data products in conjunction with onboard global positioning and attitude estimates. This allows for precise and rapid annotation of thermal and non-thermal imagery at a massively-parallelizable scale. Please see our arxiv preprint for more details:
+**[IROS 2024 Paper](https://ieeexplore.ieee.org/document/10801479)** | **[Arxiv](https://arxiv.org/abs/2403.14056)**
 
-[1] [Lee, C., Soedarmadji, S., Anderson, M., Clark, A. J., & Chung, S. J. (2024). Semantics from Space: Satellite-Guided Thermal Semantic Segmentation Annotation for Aerial Field Robots. arXiv preprint arXiv:2403.14056.](https://arxiv.org/abs/2403.14056)
+Welcome to the Semantics from Space repository! This project introduces a novel method for automatically generating semantic segmentation annotations for thermal imagery obtained from aerial vehicles. Our method leverages satellite-derived data products in conjunction with onboard global positioning and attitude estimates. This allows for precise and rapid annotation of thermal and non-thermal imagery at a massively-parallelizable scale.
 
 
 Key Features:
@@ -126,4 +126,20 @@ cd autoseg_refinement
 
 ## Issues and Contributing
 If you find issues with this repo, or have code to contribute, please submit and issue and/or a PR above.
+
+# Citation
+If you found this work useful, please cite 
+```
+@INPROCEEDINGS{10801479,
+  author={Lee, Connor and Soedarmadji, Saraswati and Anderson, Matthew and Clark, Anthony J. and Chung, Soon-Jo},
+  booktitle={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 
+  title={Semantics from Space: Satellite-Guided Thermal Semantic Segmentation Annotation for Aerial Field Robots}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={10407-10414},
+  keywords={Training;Visualization;Satellites;Costs;Annotations;Semantic segmentation;Semantics;Robot sensing systems;Robustness;Sensors},
+  doi={10.1109/IROS58592.2024.10801479}}
+
+```
 
